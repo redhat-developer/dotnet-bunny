@@ -7,6 +7,7 @@ import subprocess
 import shutil
 import json
 import re
+import cStringIO
 
 
 class Test(object):
@@ -31,7 +32,7 @@ class Test(object):
             o.close()
 
     def copyProjectJson(self, path):
-            shutil.copy(os.path.join(rootPath, "project" + version.__str__() + ".json"), os.path.join(path, "project.json"))
+            shutil.copy(os.path.join(rootPath, "project" + version.__str__() + ("xunit" if self.type == "xunit" else "") + ".json"), os.path.join(path, "project.json"))
 
     # Returns the exit code of the test.
     def run(self, path):
@@ -55,7 +56,7 @@ class Test(object):
         else:
             logfile.writelines(self.name + ": Unknown test type " + self.type + "\n")
 
-        result = "Result: " + ("FAIL - Code: " + str(errorCode) if errorCode == 1 else "PASS")
+        result = "Result: " + (("FAIL - Code: " + str(errorCode)) if errorCode > 0 else "PASS")
         logfile.writelines(self.name + ": " + result + "\n")
         print result
         return errorCode
