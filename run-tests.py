@@ -7,7 +7,6 @@ import subprocess
 import shutil
 import json
 import re
-import cStringIO
 
 
 class Test(object):
@@ -45,16 +44,27 @@ class Test(object):
         else:
             self.copyProjectJson(path)
 
+        #  import cStringIO
+        #testlog = cStringIO.StringIO()
+        # Apparently python does *not* have memory stream equivalent from C# so I have to write it all into *actual file.*
+        # Rip performance. (This stringIO shit won't work cause the call expects file descriptor `fileno()`)
+
+        testlog = open(logfilename + "-" + self.name, "w")
         errorCode = 1
 
         if self.type == "xunit":
-            errorCode = subprocess.call(["dotnet", "restore"], cwd=self.name, stdout=logfile, stderr=logfile)
+            errorCode = subprocess.call(["dotnet", "restore"], cwd=self.name, stdout=testlog, stderr=subprocess.STDOUT)
             if errorCode == 0:
-                errorCode = subprocess.call(["dotnet", "test"], cwd=self.name, stdout=logfile, stderr=logfile)
+                errorCode = subprocess.call(["dotnet", "test"], cwd=self.name, stdout=testlog, stderr=subprocess.STDOUT)
         elif self.type == "bash":
-            errorCode = subprocess.call([os.path.join(path, "test.sh")], cwd=self.name, stdout=logfile, stderr=logfile)
+            errorCode = subprocess.call([os.path.join(path, "test.sh")], cwd=self.name, stdout=testlog, stderr=subprocess.STDOUT)
         else:
             logfile.writelines(self.name + ": Unknown test type " + self.type + "\n")
+
+        testlog.flush()
+        testlog.close()
+        if errorCode == 0:
+            shutil.rmtree(os.path.join(logfilename + "-" + self.name), True)
 
         result = "Result: " + (("FAIL - Code: " + str(errorCode)) if errorCode > 0 else "PASS")
         logfile.writelines(self.name + ": " + result + "\n")
@@ -119,18 +129,12 @@ class DotnetBunny(object):
                 continue
 
             self.total += 1
-            if result == 1:
+            if result > 1:
                 self.failed += 1
                 if exitOnFail:
                     break
             else:
                 self.passed += 1
-
-            try:
-                test.cleanup(subdir)
-            except Exception as e:
-                print "Failed to cleanup after the test " + subdir + " with Exception:\n" + e.__str__()
-                logfile.writelines(".NET Bunny: " + e.__str__() + "\n")
 
     def getResults(self):
         results = "Total: " + str(self.total) + " Passed: " + str(self.passed) + " Failed: " + str(self.failed)
@@ -155,7 +159,8 @@ if len(sys.argv) < 3:
           "        t/f - true or false, whether to exit on failed test, or not"
     sys.exit(1)
 
-logfile = open("logfile", "w")
+logfilename = "logfile"
+logfile = open(logfilename, "w")
 
 logfile.writelines("\n\n(\\_/)\n(^_^)\n@(\")(\")\n\n")
 versionString = sys.argv[1]
