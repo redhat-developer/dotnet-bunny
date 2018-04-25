@@ -25,10 +25,8 @@ class Test(object):
         with open(path, 'r') as i:
             content = i.read()
             content = frameworkExpression.sub("<TargetFramework>netcoreapp" + versionString + "</TargetFramework>", content)
-            i.close()
         with open(path, 'w') as o:
             o.write(content)
-            o.close()
 
     def copyProjectJson(self, path):
             shutil.copy(os.path.join(rootPath, "project" + version.__str__() + ("xunit" if self.type == "xunit" else "") + ".json"), os.path.join(path, "project.json"))
@@ -120,6 +118,7 @@ class DotnetBunny(object):
                 print "Failed to cleanup before the test " + subdir + " with Exception:\n" + e.__str__()
                 logfile.writelines(".NET Bunny: " + e.__str__() + "\n")
 
+            self.total += 1
             try:
                 result = test.run(subdir)
             except Exception as e:
@@ -128,8 +127,7 @@ class DotnetBunny(object):
                 self.failed += 1
                 continue
 
-            self.total += 1
-            if result > 1:
+            if result > 0:
                 self.failed += 1
                 if exitOnFail:
                     break
@@ -137,10 +135,14 @@ class DotnetBunny(object):
                 self.passed += 1
 
     def getResults(self):
-        results = "Total: " + str(self.total) + " Passed: " + str(self.passed) + " Failed: " + str(self.failed)
+        results = "Total: {0} Passed: {1} Failed: {2}".format(self.total, self.passed, self.failed)
         logfile.writelines("\n.NET Bunny: Results:\n")
         logfile.writelines(results + "\n")
         return "\n" + results
+
+    def createResultsFile(self):
+        with open("results.properties", "w") as resultsFile:
+            resultsFile.write("tests.total={0}\ntests.passed={1}\ntests.failed={2}\n".format(self.total, self.passed, self.failed))
 
     def cleanup(self):
         logfile.writelines(".NET Bunny: Cleaning up...\n")
@@ -153,19 +155,40 @@ class DotnetBunny(object):
 
 print "\n(\\_/)\n(^_^)\n@(\")(\")\n"
 
-if len(sys.argv) < 3:
-    print "Usage: run-tests.py x.y t/f\n" \
-          "        x.y - major and minor version of the dotnet package in use\n" \
-          "        t/f - true or false, whether to exit on failed test, or not"
+helpString = "Usage: run-tests.py x.y [options]\n" \
+       "        x.y - major and minor version of the dotnet package in use\n" \
+       "        options:\n" \
+       "          -e  - exit on the first failed test\n" \
+       "          -r  - create results.properties file for jenkins\n" \
+       "          -h  - display this help"
+
+if len(sys.argv) < 2:
+    print helpString
     sys.exit(1)
+
+exitOnFail = False
+createResultsFile = False
+
+for arg in sys.argv:
+    if arg == "-e":
+        exitOnFail = True
+        continue
+
+    if arg == "-r":
+        createResultsFile = True
+        continue
+
+    if arg == "-h" or arg == "--help":
+        print helpString
+        sys.exit(0)
 
 logfilename = "logfile"
 logfile = open(logfilename, "w")
-
 logfile.writelines("\n\n(\\_/)\n(^_^)\n@(\")(\")\n\n")
+
 versionString = sys.argv[1]
 version = int(versionString.replace('.', ""))
-exitOnFail = True if sys.argv[2] == "true" else False
+
 frameworkExpression = re.compile("<TargetFramework>netcoreapp\d\.\d</TargetFramework>", re.M)
 
 rootPath = os.path.abspath(os.path.curdir)
@@ -174,8 +197,10 @@ dotnetBunny = DotnetBunny(rootPath)
 dotnetBunny.cleanup()
 dotnetBunny.runTests()
 print dotnetBunny.getResults()
-dotnetBunny.cleanup()
+if createResultsFile:
+    dotnetBunny.createResultsFile()
 
+dotnetBunny.cleanup()
 logfile.flush()
 logfile.close()
 exit(dotnetBunny.failed)
