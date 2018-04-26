@@ -16,7 +16,11 @@ class Test(object):
 
         self.name = config["name"]
         self.type = config["type"]
-        self.version = int(config["version"].replace('.', ""))
+        self.anyMinor = config["version"].split('.')[1] == "x"
+        if self.anyMinor:
+            self.version = int(config["version"].split('.')[0])
+        else:
+            self.version = int(config["version"].replace('.', ""))
         self.versionSpecific = config["versionSpecific"]
         self.shouldCleanup = config["cleanup"]
         self.files = files
@@ -108,8 +112,9 @@ class DotnetBunny(object):
                 self.failed += 1
                 continue
 
-            if ((test.versionSpecific and test.version == version) or
-            (not test.versionSpecific and test.version > version)):
+            if not ((test.versionSpecific and test.version == version) or
+                    (test.versionSpecific and test.version == major and test.anyMinor) or
+                (not test.versionSpecific and test.version <= version)):
                 continue
 
             try:
@@ -188,6 +193,7 @@ logfile.writelines("\n\n(\\_/)\n(^_^)\n@(\")(\")\n\n")
 
 versionString = sys.argv[1]
 version = int(versionString.replace('.', ""))
+major = int(versionString.split('.')[0])
 
 frameworkExpression = re.compile("<TargetFramework>netcoreapp\d\.\d</TargetFramework>", re.M)
 
