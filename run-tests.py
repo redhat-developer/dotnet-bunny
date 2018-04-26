@@ -104,7 +104,7 @@ class DotnetBunny(object):
                 test = Test(path, files)
             except Exception as e:
                 print "Failed to create the test " + subdir + " with Exception:\n" + e.__str__()
-                logfile.writelines(".NET Bunny: {0}\n".format(e.__str__()))
+                logfile.writelines(self.name + ".Create Exception: {0}\n".format(e.__str__()))
                 self.failed += 1
                 continue
 
@@ -116,14 +116,14 @@ class DotnetBunny(object):
                 test.cleanup(subdir)
             except Exception as e:
                 print "Failed to cleanup before the test " + subdir + " with Exception:\n" + e.__str__()
-                logfile.writelines(".NET Bunny: " + e.__str__() + "\n")
+                logfile.writelines(self.name + ".Cleanup Exception: {0}\n".format(e.__str__()))
 
             self.total += 1
             try:
                 result = test.run(subdir)
             except Exception as e:
                 print "Failed to run the test " + subdir + " with Exception:\n" + e.__str__()
-                logfile.writelines(".NET Bunny: " + e.__str__() + "\n")
+                logfile.writelines(self.name + ".Run Exception: {0}\n".format(e.__str__()))
                 self.failed += 1
                 continue
 
