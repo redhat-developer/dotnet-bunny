@@ -26,6 +26,9 @@ class Test(object):
         self.files = files
 
     def setFrameworkVersion(self, path):
+        if not os.path.exists(path):
+            return
+
         with open(path, 'r') as i:
             content = i.read()
             content = frameworkExpression.sub("<TargetFramework>netcoreapp" + versionString + "</TargetFramework>", content)
@@ -33,7 +36,7 @@ class Test(object):
             o.write(content)
 
     def copyProjectJson(self, path):
-            shutil.copy(os.path.join(rootPath, "project" + version.__str__() + ("xunit" if self.type == "xunit" else "") + ".json"), os.path.join(path, "project.json"))
+        shutil.copy(os.path.join(rootPath, "project" + version.__str__() + ("xunit" if self.type == "xunit" else "") + ".json"), os.path.join(path, "project.json"))
 
     # Returns the exit code of the test.
     def run(self, path):
@@ -108,7 +111,7 @@ class DotnetBunny(object):
                 test = Test(path, files)
             except Exception as e:
                 print "Failed to create the test " + subdir + " with Exception:\n" + e.__str__()
-                logfile.writelines(self.name + ".Create Exception: {0}\n".format(e.__str__()))
+                logfile.writelines(test.name + ".Create Exception: {0}\n".format(e.__str__()))
                 self.failed += 1
                 continue
 
@@ -121,14 +124,14 @@ class DotnetBunny(object):
                 test.cleanup(subdir)
             except Exception as e:
                 print "Failed to cleanup before the test " + subdir + " with Exception:\n" + e.__str__()
-                logfile.writelines(self.name + ".Cleanup Exception: {0}\n".format(e.__str__()))
+                logfile.writelines(test.name + ".Cleanup Exception: {0}\n".format(e.__str__()))
 
             self.total += 1
             try:
                 result = test.run(subdir)
             except Exception as e:
                 print "Failed to run the test " + subdir + " with Exception:\n" + e.__str__()
-                logfile.writelines(self.name + ".Run Exception: {0}\n".format(e.__str__()))
+                logfile.writelines(test.name + ".Run Exception: {0}\n".format(e.__str__()))
                 self.failed += 1
                 continue
 
