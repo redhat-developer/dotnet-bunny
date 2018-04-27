@@ -54,22 +54,28 @@ class Test(object):
         # Apparently python does *not* have memory stream equivalent from C# so I have to write it all into *actual file.*
         # Rip performance. (This stringIO shit won't work cause the call expects file descriptor `fileno()`)
 
-        testlog = open(logfilename + "-" + self.name, "w")
+        testlogFilename = logfilename + "-" + self.name + ".log"
+        testlog = self.name + "\n\n"
         errorCode = 1
 
         if self.type == "xunit":
-            errorCode = subprocess.call(["dotnet", "restore"], cwd=self.name, stdout=testlog, stderr=subprocess.STDOUT)
+            process = subprocess.Popen(["dotnet", "restore"], cwd=self.name, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            testlog = testlog + process.communicate()[0]
+            errorCode = process.wait()
             if errorCode == 0:
-                errorCode = subprocess.call(["dotnet", "test"], cwd=self.name, stdout=testlog, stderr=subprocess.STDOUT)
+                process = subprocess.Popen(["dotnet", "test"], cwd=self.name, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                testlog = testlog + process.communicate()[0]
+                errorCode = process.wait()
         elif self.type == "bash":
-            errorCode = subprocess.call([os.path.join(path, "test.sh")], cwd=self.name, stdout=testlog, stderr=subprocess.STDOUT)
+            process = subprocess.Popen(os.path.join(path, "test.sh"), cwd=self.name, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            testlog = testlog + process.communicate()[0]
+            errorCode = process.wait()
         else:
             logfile.writelines(self.name + ": Unknown test type " + self.type + "\n")
 
-        testlog.flush()
-        testlog.close()
-        if errorCode == 0:
-            shutil.rmtree(os.path.join(logfilename + "-" + self.name), True)
+        if errorCode > 0:
+            with open(testlogFilename, 'w') as testlogFile:
+                testlogFile.write(testlog)
 
         result = "Result: " + (("FAIL - Code: " + str(errorCode)) if errorCode > 0 else "PASS")
         logfile.writelines(self.name + ": " + result + "\n")
@@ -191,7 +197,7 @@ for arg in sys.argv:
         sys.exit(0)
 
 logfilename = "logfile"
-logfile = open(logfilename, "w")
+logfile = open(logfilename + ".log", "w")
 logfile.writelines("\n\n(\\_/)\n(^_^)\n@(\")(\")\n\n")
 
 versionString = sys.argv[1]
