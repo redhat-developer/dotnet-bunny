@@ -1,3 +1,5 @@
+logfile*
+results.properties
 *.userprefs
 *.idea/
 bin/
