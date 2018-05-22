@@ -49,27 +49,35 @@ class Test(object):
         else:
             self.copyProjectJson(path)
 
-        #  import cStringIO
-        #testlog = cStringIO.StringIO()
-        # Apparently python does *not* have memory stream equivalent from C# so I have to write it all into *actual file.*
-        # Rip performance. (This stringIO shit won't work cause the call expects file descriptor `fileno()`)
-
         testlogFilename = logfilename + "-" + self.name + ".log"
         testlog = self.name + "\n\n"
         errorCode = 1
 
         if self.type == "xunit":
-            process = subprocess.Popen(["dotnet", "restore"], cwd=self.name, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            testlog = testlog + process.communicate()[0]
-            errorCode = process.wait()
-            if errorCode == 0:
-                process = subprocess.Popen(["dotnet", "test"], cwd=self.name, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            try:
+                process = subprocess.Popen(["dotnet", "restore"], cwd=path, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 testlog = testlog + process.communicate()[0]
                 errorCode = process.wait()
+                if errorCode == 0:
+                    process = subprocess.Popen(["dotnet", "test"], cwd=path, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    testlog = testlog + process.communicate()[0]
+                    errorCode = process.wait()
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                testlog = testlog + "Process Exception: {0}\n{1} @ {2}".format(e.__str__(), fname, exc_tb.tb_lineno)
+                errorCode = 1
         elif self.type == "bash":
-            process = subprocess.Popen(os.path.join(path, "test.sh"), cwd=self.name, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            testlog = testlog + process.communicate()[0]
-            errorCode = process.wait()
+            try:
+                mypath = os.path.join(path, "test.sh")
+                process = subprocess.Popen(mypath, cwd=path, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                testlog = testlog + process.communicate()[0]
+                errorCode = process.wait()
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                testlog = testlog + "Process Exception: {0}\n{1} @ {2}".format(e.__str__(), fname, exc_tb.tb_lineno)
+                errorCode = 1
         else:
             logfile.writelines(self.name + ": Unknown test type " + self.type + "\n")
 
@@ -116,8 +124,10 @@ class DotnetBunny(object):
             try:
                 test = Test(path, files)
             except Exception as e:
-                print "Failed to create the test " + subdir + " with Exception:\n" + e.__str__()
-                logfile.writelines(test.name + ".Create Exception: {0}\n".format(e.__str__()))
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                print "Failed to create the test {0} with Exception: {1}\n{2} @ {3}".format(subdir, e.__str__(), fname, exc_tb.tb_lineno)
+                logfile.writelines(test.name + ".Create Exception: {0}\n{1} @ {2}".format(e.__str__(), fname, exc_tb.tb_lineno))
                 self.failed += 1
                 continue
 
@@ -129,15 +139,19 @@ class DotnetBunny(object):
             try:
                 test.cleanup(subdir)
             except Exception as e:
-                print "Failed to cleanup before the test " + subdir + " with Exception:\n" + e.__str__()
-                logfile.writelines(test.name + ".Cleanup Exception: {0}\n".format(e.__str__()))
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                print "Failed to cleanup before the test {0} with Exception: {1}\n{2} @ {3}".format(subdir, e.__str__(), fname, exc_tb.tb_lineno)
+                logfile.writelines(test.name + ".Cleanup Exception: {0}\n{1} @ {2}".format(e.__str__(), fname, exc_tb.tb_lineno))
 
             self.total += 1
             try:
                 result = test.run(subdir)
             except Exception as e:
-                print "Failed to run the test " + subdir + " with Exception:\n" + e.__str__()
-                logfile.writelines(test.name + ".Run Exception: {0}\n".format(e.__str__()))
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                print "Failed to run the test {0} with Exception: {1}\n{2} @ {3}".format(subdir, e.__str__(), fname, exc_tb.tb_lineno)
+                logfile.writelines(test.name + ".Run Exception: {0}\n{1} @ {2}".format(e.__str__(), fname, exc_tb.tb_lineno))
                 self.failed += 1
                 continue
 
