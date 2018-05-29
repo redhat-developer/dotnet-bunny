@@ -174,7 +174,7 @@ class DotnetBunny(object):
 
     def cleanup(self):
         logfile.writelines(".NET Bunny: Cleaning up...\n")
-        shutil.rmtree("~/.nuget", True)
+        shutil.rmtree("~/.nuget/packages", True)
         shutil.rmtree("~/.local/share/NuGet", True)
         shutil.rmtree("~/.dotnet", True)
         shutil.rmtree("~/.templateengine", True)
