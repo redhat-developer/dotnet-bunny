@@ -9,98 +9,102 @@ import json
 import re
 
 
-class Test(object):
+class DotnetBunny(object):
 
-    def __init__(self, configPath, files):
-        config = json.load(open(configPath))
+    class Test(object):
 
-        self.name = config["name"]
-        self.type = config["type"]
-        self.anyMinor = config["version"].split('.')[1] == "x"
-        if self.anyMinor:
-            self.version = int(config["version"].split('.')[0])
-        else:
-            self.version = int(config["version"].replace('.', ""))
-        self.versionSpecific = config["versionSpecific"]
-        self.shouldCleanup = config["cleanup"]
-        self.files = files
+        def __init__(self, configPath, files):
+            config = json.load(open(configPath))
 
-    def setFrameworkVersion(self, path):
-        if not os.path.exists(path):
-            return
+            self.name = config["name"]
+            self.type = config["type"]
+            self.anyMinor = config["version"].split('.')[1] == "x"
+            if self.anyMinor:
+                self.version = int(config["version"].split('.')[0])
+            else:
+                self.version = int(config["version"].replace('.', ""))
+            self.versionSpecific = config["versionSpecific"]
+            self.shouldCleanup = config["cleanup"]
+            self.files = files
 
-        with open(path, 'r') as i:
-            content = i.read()
-            content = frameworkExpression.sub("<TargetFramework>netcoreapp" + versionString + "</TargetFramework>", content)
-        with open(path, 'w') as o:
-            o.write(content)
+        def setFrameworkVersion(self, path):
+            if not os.path.exists(path):
+                return
 
-    def copyProjectJson(self, path):
-        shutil.copy(os.path.join(rootPath, "project" + version.__str__() + ("xunit" if self.type == "xunit" else "") + ".json"), os.path.join(path, "project.json"))
+            with open(path, 'r') as i:
+                content = i.read()
+                content = frameworkExpression.sub("<TargetFramework>netcoreapp" + versionString + "</TargetFramework>",
+                                                  content)
+            with open(path, 'w') as o:
+                o.write(content)
 
-    # Returns the exit code of the test.
-    def run(self, path):
-        print "Running " + self.name
-        logfile.writelines(self.name + ": Running test...\n")
-        logfile.flush()
+        def copyProjectJson(self, path):
+            shutil.copy(os.path.join(rootPath, "project" + version.__str__() + (
+                "xunit" if self.type == "xunit" else "") + ".json"), os.path.join(path, "project.json"))
 
-        if version >= 20:
-            self.setFrameworkVersion(os.path.join(path, self.name + ".csproj"))
-        else:
-            self.copyProjectJson(path)
+        # Returns the exit code of the test.
+        def run(self, path):
+            print "Running " + self.name
+            logfile.writelines(self.name + ": Running test...\n")
+            logfile.flush()
 
-        testlogFilename = logfilename + "-" + self.name + ".log"
-        testlog = self.name + "\n\n"
-        errorCode = 1
+            if version >= 20:
+                self.setFrameworkVersion(os.path.join(path, self.name + ".csproj"))
+            else:
+                self.copyProjectJson(path)
 
-        if self.type == "xunit":
-            try:
-                process = subprocess.Popen(["dotnet", "restore"], cwd=path, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                testlog = testlog + process.communicate()[0]
-                errorCode = process.wait()
-                if errorCode == 0:
-                    process = subprocess.Popen(["dotnet", "test"], cwd=path, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            testlogFilename = logfilename + "-" + self.name + ".log"
+            testlog = self.name + "\n\n"
+            errorCode = 1
+
+            if self.type == "xunit":
+                try:
+                    process = subprocess.Popen(["dotnet", "restore"], cwd=path, stdout=subprocess.PIPE,
+                                               stderr=subprocess.STDOUT)
                     testlog = testlog + process.communicate()[0]
                     errorCode = process.wait()
-            except Exception as e:
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                testlog = testlog + "Process Exception: {0}\n{1} @ {2}".format(e.__str__(), fname, exc_tb.tb_lineno)
-                errorCode = 1
-        elif self.type == "bash":
-            try:
-                mypath = os.path.join(path, "test.sh")
-                process = subprocess.Popen(mypath, cwd=path, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                testlog = testlog + process.communicate()[0]
-                errorCode = process.wait()
-            except Exception as e:
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                testlog = testlog + "Process Exception: {0}\n{1} @ {2}".format(e.__str__(), fname, exc_tb.tb_lineno)
-                errorCode = 1
-        else:
-            logfile.writelines(self.name + ": Unknown test type " + self.type + "\n")
+                    if errorCode == 0:
+                        process = subprocess.Popen(["dotnet", "test"], cwd=path, stdout=subprocess.PIPE,
+                                                   stderr=subprocess.STDOUT)
+                        testlog = testlog + process.communicate()[0]
+                        errorCode = process.wait()
+                except Exception as e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                    testlog = testlog + "Process Exception: {0}\n{1} @ {2}".format(e.__str__(), fname, exc_tb.tb_lineno)
+                    errorCode = 1
+            elif self.type == "bash":
+                try:
+                    mypath = os.path.join(path, "test.sh")
+                    process = subprocess.Popen(mypath, cwd=path, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    testlog = testlog + process.communicate()[0]
+                    errorCode = process.wait()
+                except Exception as e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                    testlog = testlog + "Process Exception: {0}\n{1} @ {2}".format(e.__str__(), fname, exc_tb.tb_lineno)
+                    errorCode = 1
+            else:
+                logfile.writelines(self.name + ": Unknown test type " + self.type + "\n")
 
-        if errorCode > 0:
-            with open(testlogFilename, 'w') as testlogFile:
-                testlogFile.write(testlog)
+            if errorCode > 0:
+                with open(testlogFilename, 'w') as testlogFile:
+                    testlogFile.write(testlog)
 
-        result = "Result: " + (("FAIL - Code: " + str(errorCode)) if errorCode > 0 else "PASS")
-        logfile.writelines(self.name + ": " + result + "\n")
-        print result
-        return errorCode
+            result = "Result: " + (("FAIL - Code: " + str(errorCode)) if errorCode > 0 else "PASS")
+            logfile.writelines(self.name + ": " + result + "\n")
+            print result
+            return errorCode
 
-    def cleanup(self, path):
-        if self.shouldCleanup:
-            logfile.writelines(self.name + ": Cleanup...\n")
-            shutil.rmtree(os.path.join(path, "bin"), True)
-            shutil.rmtree(os.path.join(path, "obj"), True)
-            shutil.rmtree(os.path.join(path, "project.lock.json"), True)
+        def cleanup(self, path):
+            if self.shouldCleanup:
+                logfile.writelines(self.name + ": Cleanup...\n")
+                shutil.rmtree(os.path.join(path, "bin"), True)
+                shutil.rmtree(os.path.join(path, "obj"), True)
+                shutil.rmtree(os.path.join(path, "project.lock.json"), True)
+                pass
             pass
-        pass
 
-
-class DotnetBunny(object):
 
     total = 0
     passed = 0
@@ -122,7 +126,7 @@ class DotnetBunny(object):
                 continue
 
             try:
-                test = Test(path, files)
+                test = DotnetBunny.Test(path, files)
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
