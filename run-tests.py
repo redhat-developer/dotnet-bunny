@@ -23,6 +23,9 @@ class DotnetBunny(object):
                 self.version = int(config["version"].split('.')[0])
             else:
                 self.version = int(config["version"].replace('.', ""))
+                if self.version < 10000:
+                    self.version = self.version * 1000
+
             self.versionSpecific = config["versionSpecific"]
             self.shouldCleanup = config["cleanup"]
             self.files = files
@@ -33,7 +36,7 @@ class DotnetBunny(object):
 
             with open(path, 'r') as i:
                 content = i.read()
-                content = frameworkExpression.sub("<TargetFramework>netcoreapp" + versionString + "</TargetFramework>",
+                content = frameworkExpression.sub("<TargetFramework>netcoreapp" + majorMinorString + "</TargetFramework>",
                                                   content)
             with open(path, 'w') as o:
                 o.write(content)
@@ -219,8 +222,11 @@ logfile = open(logfilename + ".log", "w")
 logfile.writelines("\n\n(\\_/)\n(^_^)\n@(\")(\")\n\n")
 
 versionString = sys.argv[1]
-version = int(versionString.replace('.', ""))
+majorMinorString = versionString.split('.')[0] + "." + versionString.split('.')[1]
 major = int(versionString.split('.')[0])
+version = int(versionString.replace('.', ""))
+if version < 10000:
+    version = version * 1000
 
 frameworkExpression = re.compile("<TargetFramework>netcoreapp\d\.\d</TargetFramework>", re.M)
 
