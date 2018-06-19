@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 # .NET Bunny is a simple script that hops through the folders and runs dotnet tests based on json configuration.
 # Radka Janek | rjanekov@redhat.com | https://github.com/redhat-developer/dotnet-bunny
 
@@ -58,7 +59,7 @@ class DotnetBunny(object):
                 self.copyProjectJson(path)
 
             testlogFilename = logfilename + "-" + self.name + ".log"
-            testlog = self.name + "\n\n"
+            testlog = ""
             errorCode = 1
 
             if self.type == "xunit":
@@ -93,10 +94,14 @@ class DotnetBunny(object):
 
             if errorCode > 0:
                 with open(testlogFilename, 'w') as testlogFile:
-                    testlogFile.write(testlog)
+                    testlogFile.write(self.name + " log:\n\n" + testlog)
+
+            if verbose:
+                prefix = "\n" + self.name + ":  "
+                logfile.writelines(self.name + ":  " + testlog.replace("\n", prefix) + "\n")
 
             result = "Result: " + (("FAIL - Code: " + str(errorCode)) if errorCode > 0 else "PASS")
-            logfile.writelines(self.name + ": " + result + "\n")
+            logfile.writelines(self.name + ":  " + result + "\n\n")
             print result
             return errorCode
 
@@ -195,6 +200,7 @@ helpString = "Usage: run-tests.py x.y [options]\n" \
        "        x.y - major and minor version of the dotnet package in use\n" \
        "        options:\n" \
        "          -e  - exit on the first failed test\n" \
+       "          -v  - verbose logfile.log output\n" \
        "          -r  - create results.properties file for jenkins\n" \
        "          -h  - display this help"
 
@@ -203,11 +209,16 @@ if len(sys.argv) < 2:
     sys.exit(1)
 
 exitOnFail = False
+verbose = False
 createResultsFile = False
 
 for arg in sys.argv:
     if arg == "-e":
         exitOnFail = True
+        continue
+
+    if arg == "-v":
+        verbose = True
         continue
 
     if arg == "-r":
