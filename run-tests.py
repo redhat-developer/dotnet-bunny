@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # .NET Bunny is a simple script that hops through the folders and runs dotnet tests based on json configuration.
 # Radka Janek | rjanekov@redhat.com | https://github.com/redhat-developer/dotnet-bunny
 
