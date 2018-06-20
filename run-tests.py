@@ -81,7 +81,7 @@ class DotnetBunny(object):
             elif self.type == "bash":
                 try:
                     mypath = os.path.join(path, "test.sh")
-                    process = subprocess.Popen(mypath, cwd=path, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    process = subprocess.Popen([mypath, versionString], cwd=path, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                     testlog = testlog + process.communicate()[0]
                     errorCode = process.wait()
                 except Exception as e:
