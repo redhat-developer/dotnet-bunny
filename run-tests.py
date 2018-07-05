@@ -22,6 +22,7 @@ class DotnetBunny(object):
             config = json.load(open(configPath))
 
             self.name = config["name"]
+            self.enabled = config["enabled"]
             self.type = config["type"]
             self.anyMinor = config["version"].split('.')[1] == "x"
             if self.anyMinor:
@@ -178,6 +179,9 @@ class DotnetBunny(object):
                 print "Failed to create the test {0} with Exception: {1}\n{2} @ {3}".format(subdir, e.__str__(), fname, exc_tb.tb_lineno)
                 logfile.writelines(test.name + ".Create Exception: {0}\n{1} @ {2}".format(e.__str__(), fname, exc_tb.tb_lineno))
                 self.failed += 1
+                continue
+
+            if not test.enabled:
                 continue
 
             if not ((test.versionSpecific and test.version == version) or

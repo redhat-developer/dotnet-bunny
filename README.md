@@ -16,6 +16,7 @@ Example config file:
 ```
 {
   "name": "CVE-2018-0875",
+  "enabled": true,
   "version": "2.0",
   "versionSpecific": false,
   "type": "xunit",
