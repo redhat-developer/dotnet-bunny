@@ -93,6 +93,8 @@ function finish() {
         fi
     else
         echo "[FAIL] $(get-test-name)"
+        echo "[LOG]"
+        cat "$log_file"
     fi
     if [[ $has_children -eq 1 ]]; then
         for pid in "${children[@]}"; do 
@@ -104,6 +106,7 @@ function finish() {
     fi
     # make sure all background jobs are done
     wait
+    exit $errors
 }
 
 function get-test-name() {
