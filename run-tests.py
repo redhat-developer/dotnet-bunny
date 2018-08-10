@@ -33,6 +33,7 @@ class DotnetBunny(object):
                     self.version = self.version * 1000
 
             self.versionSpecific = config["versionSpecific"]
+            self.platformBlacklist = config["platform-blacklist"]
             self.shouldCleanup = config["cleanup"]
             self.files = files
 
@@ -189,6 +190,9 @@ class DotnetBunny(object):
                 (not test.versionSpecific and test.version <= version)):
                 continue
 
+            if any(platform in s for s in test.platformBlacklist):
+                continue
+
             try:
                 test.cleanup(subdir)
             except Exception as e:
@@ -248,6 +252,7 @@ print "\n(\\_/)\n(^_^)\n@(\")(\")\n"
 helpString = "Usage: run-tests.py x.y [options]\n" \
        "        x.y - major and minor version of the dotnet package in use\n" \
        "        options:\n" \
+       "          -p=rhel7|rhel8|fedora - platform, defaults to rhel7\n" \
        "          -e  - exit on the first failed test\n" \
        "          -v  - verbose logfile.log output\n" \
        "          -r  - create results.properties file for jenkins\n" \
@@ -262,8 +267,17 @@ exitOnFail = False
 verbose = False
 createResultsFile = False
 debug = False
+platform = "rhel7"
+compatiblePlatforms = ["rhel7", "rhel8", "fedora"]
 
 for arg in sys.argv:
+    if arg.startswith("-p="):
+        platform = arg[3:]
+        if any(platform in s for s in compatiblePlatforms):
+            continue
+        print "Invalid platform!"
+        exit(0)
+
     if arg == "-e":
         exitOnFail = True
         continue

@@ -11,6 +11,7 @@ The json config has these values:
 * `versionSpecific` - Set to true for the above version to be exact match - for this test to not run with higher versions of dotnet. (You can use x as minor version, e.g. 1.x will run with 1.0 and 1.1 but not with anything higher.)
 * `type` - Type of the test. This can be either `xunit` or `bash`. The `xunit` type will call `dotnet test` while the `bash` type will look for `test.sh` and call it (`test.sh` will receive the current dotnet version as ``$1`)
 * `cleanup` - Clean up before running the test.
+* `platform-blacklist` - A list of blacklisted platforms where the test will not run.
 
 Example config file: 
 ```
@@ -20,7 +21,10 @@ Example config file:
   "version": "2.0",
   "versionSpecific": false,
   "type": "xunit",
-  "cleanup": true
+  "cleanup": true,
+  "platform-blacklist": [
+    "fedora"
+    ]
 }
 ```
 
