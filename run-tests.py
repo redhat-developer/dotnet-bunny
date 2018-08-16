@@ -178,7 +178,7 @@ class DotnetBunny(object):
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                 print "Failed to create the test {0} with Exception: {1}\n{2} @ {3}".format(subdir, e.__str__(), fname, exc_tb.tb_lineno)
-                logfile.writelines(test.name + ".Create Exception: {0}\n{1} @ {2}".format(e.__str__(), fname, exc_tb.tb_lineno))
+                logfile.writelines(path + ".Create Exception: {0}\n{1} @ {2}".format(e.__str__(), fname, exc_tb.tb_lineno))
                 self.failed += 1
                 continue
 
