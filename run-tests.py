@@ -146,16 +146,14 @@ class DotnetBunny(object):
             if debug:
                 print "Test.cleanup() DONE"
 
-
-    total = 0
-    passed = 0
-    failed = 0
-
     def __init__(self, rootPath):
         if debug:
             print "DotnetBunny.__init__( " + rootPath.__str__() + " )"
 
         self.rootPath = rootPath
+        self.total = 0
+        self.passed = 0
+        self.failed = 0
 
     def runTests(self):
         if debug:
