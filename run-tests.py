@@ -33,7 +33,7 @@ class DotnetBunny(object):
                     self.version = self.version * 1000
 
             self.versionSpecific = config["versionSpecific"]
-            self.platformBlacklist = config["platform-blacklist"]
+            self.platformBlacklist = config["platformBlacklist"]
             self.shouldCleanup = config["cleanup"]
             self.files = files
 

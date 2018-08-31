@@ -22,7 +22,7 @@ Example config file:
   "versionSpecific": false,
   "type": "xunit",
   "cleanup": true,
-  "platform-blacklist": [
+  "platformBlacklist": [
     "fedora"
     ]
 }
