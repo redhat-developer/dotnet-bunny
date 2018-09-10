@@ -126,10 +126,11 @@ class DotnetBunny(object):
             result = "Result: " + (("FAIL - Code: " + str(errorCode)) if errorCode > 0 else "PASS")
             logfile.writelines(self.name + ":  " + result + "\n\n")
             print result
-            return errorCode
 
             if debug:
                 print "Test.run() DONE"
+
+            return errorCode
 
         def cleanup(self, path):
             if debug:
@@ -180,7 +181,7 @@ class DotnetBunny(object):
                 self.failed += 1
                 continue
 
-            if not test.enabled:
+            if not test.enabled and not executeDisabled:
                 continue
 
             if not ((test.versionSpecific and test.version == version) or
@@ -254,6 +255,7 @@ helpString = "Usage: run-tests.py x.y [options]\n" \
        "          -e  - exit on the first failed test\n" \
        "          -v  - verbose logfile.log output\n" \
        "          -r  - create results.properties file for jenkins\n" \
+       "          -x  - execute disabled tests as well\n" \
        "          -d  - debug console spam\n" \
        "          -h  - display this help"
 
@@ -264,6 +266,7 @@ if len(sys.argv) < 2:
 exitOnFail = False
 verbose = False
 createResultsFile = False
+executeDisabled = False
 debug = False
 platform = "rhel7"
 compatiblePlatforms = ["rhel7", "rhel8", "fedora"]
@@ -286,6 +289,10 @@ for arg in sys.argv:
 
     if arg == "-r":
         createResultsFile = True
+        continue
+
+    if arg == "-x":
+        executeDisabled = True
         continue
 
     if arg == "-d":
