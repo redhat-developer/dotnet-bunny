@@ -1,6 +1,7 @@
 {
   "version": "1.0.0-*",
   "buildOptions": {
+    "warningsAsErrors": true,
     "debugType": "portable",
     "emitEntryPoint": true
   },
