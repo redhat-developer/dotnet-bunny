@@ -310,6 +310,9 @@ for arg in sys.argv:
         print helpString
         sys.exit(0)
 
+reload(sys)
+sys.setdefaultencoding('utf8')
+
 logfilename = "logfile"
 logfile = open(logfilename + ".log", "w")
 logfile.writelines("\n\n(\\_/)\n(^_^)\n@(\")(\")\n\n")
