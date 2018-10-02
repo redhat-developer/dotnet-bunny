@@ -4,6 +4,7 @@
 # Radka Janek | rjanekov@redhat.com | https://github.com/redhat-developer/dotnet-bunny
 
 import os
+import traceback
 import sys
 import subprocess
 import shutil
@@ -176,8 +177,10 @@ class DotnetBunny(object):
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print "Failed to create the test {0} with Exception: {1}\n{2} @ {3}".format(subdir, e.__str__(), fname, exc_tb.tb_lineno)
-                logfile.writelines(path + ".Create Exception: {0}\n{1} @ {2}".format(e.__str__(), fname, exc_tb.tb_lineno))
+                print "Failed to create the test {0} with Exception: {1}\n{2}\n{3} @ {4}".format(subdir, exc_type, e.__str__(), fname, exc_tb.tb_lineno)
+                logfile.writelines(path + ".Create Exception: {0}\n{1}\n{2} @ {3}".format(exc_type, e.__str__(), fname, exc_tb.tb_lineno))
+                sys.stdout.flush()
+                traceback.print_tb(exc_tb)
                 self.failed += 1
                 continue
 
@@ -197,8 +200,10 @@ class DotnetBunny(object):
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print "Failed to cleanup before the test {0} with Exception: {1}\n{2} @ {3}".format(subdir, e.__str__(), fname, exc_tb.tb_lineno)
-                logfile.writelines(test.name + ".Cleanup Exception: {0}\n{1} @ {2}".format(e.__str__(), fname, exc_tb.tb_lineno))
+                print "Failed to cleanup before the test {0} with Exception: {1}\n{2}\n{3} @ {4}".format(subdir, exc_type, e.__str__(), fname, exc_tb.tb_lineno)
+                logfile.writelines(test.name + ".Cleanup Exception: {0}\n{1}\n{2} @ {3}".format(exc_type, e.__str__(), fname, exc_tb.tb_lineno))
+                sys.stdout.flush()
+                traceback.print_tb(exc_tb)
 
             self.total += 1
             try:
@@ -206,8 +211,10 @@ class DotnetBunny(object):
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print "Failed to run the test {0} with Exception: {1}\n{2} @ {3}".format(subdir, e.__str__(), fname, exc_tb.tb_lineno)
-                logfile.writelines(test.name + ".Run Exception: {0}\n{1} @ {2}".format(e.__str__(), fname, exc_tb.tb_lineno))
+                print "Failed to run the test {0} with Exception: {1}\n{2}\n{3} @ {4}".format(subdir, exc_type, e.__str__(), fname, exc_tb.tb_lineno)
+                logfile.writelines(test.name + ".Run Exception: {0}\n{1}\n{2} @ {3}".format(exc_type, e.__str__(), fname, exc_tb.tb_lineno))
+                sys.stdout.flush()
+                traceback.print_tb(exc_tb)
                 self.failed += 1
                 continue
 
