@@ -3,6 +3,7 @@
 # .NET Bunny is a simple script that hops through the folders and runs dotnet tests based on json configuration.
 # Radka Janek | rjanekov@redhat.com | https://github.com/redhat-developer/dotnet-bunny
 
+from __future__ import print_function
 import os
 import traceback
 import sys
@@ -18,7 +19,7 @@ class DotnetBunny(object):
 
         def __init__(self, configPath, files):
             if debug:
-                print "Test.__init__( " + configPath.__str__() + " )"
+                print("Test.__init__( " + configPath.__str__() + " )")
 
             config = json.load(open(configPath))
 
@@ -39,11 +40,11 @@ class DotnetBunny(object):
             self.files = files
 
             if debug:
-                print "Test.__init__() DONE"
+                print("Test.__init__() DONE")
 
         def setFrameworkVersion(self, path):
             if debug:
-                print "Test.setFrameworkVersion( " + path.__str__() + " )"
+                print("Test.setFrameworkVersion( " + path.__str__() + " )")
 
             if not os.path.exists(path):
                 return
@@ -56,24 +57,24 @@ class DotnetBunny(object):
                 o.write(content)
 
             if debug:
-                print "Test.setFrameworkVersion() DONE"
+                print("Test.setFrameworkVersion() DONE")
 
         def copyProjectJson(self, path):
             if debug:
-                print "Test.copyProjectJson( " + path.__str__() + " )"
+                print("Test.copyProjectJson( " + path.__str__() + " )")
 
             shutil.copy(os.path.join(rootPath, "project" + major.__str__() + minor.__str__() + (
                 "xunit" if self.type == "xunit" else "") + ".json"), os.path.join(path, "project.json"))
 
             if debug:
-                print "Test.copyProjectJson() DONE"
+                print("Test.copyProjectJson() DONE")
 
         # Returns the exit code of the test.
         def run(self, path):
             if debug:
-                print "Test.run( " + path.__str__() + " )"
+                print("Test.run( " + path.__str__() + " )")
 
-            print "Running " + self.name
+            print("Running " + self.name)
             logfile.writelines(self.name + ": Running test...\n")
             logfile.flush()
 
@@ -126,16 +127,16 @@ class DotnetBunny(object):
 
             result = "Result: " + (("FAIL - Code: " + str(errorCode)) if errorCode > 0 else "PASS")
             logfile.writelines(self.name + ":  " + result + "\n\n")
-            print result
+            print(result)
 
             if debug:
-                print "Test.run() DONE"
+                print("Test.run() DONE")
 
             return errorCode
 
         def cleanup(self, path):
             if debug:
-                print "Test.cleanup( " + path.__str__() + " )"
+                print("Test.cleanup( " + path.__str__() + " )")
 
             if self.shouldCleanup:
                 logfile.writelines(self.name + ": Cleanup...\n")
@@ -146,11 +147,11 @@ class DotnetBunny(object):
             pass
 
             if debug:
-                print "Test.cleanup() DONE"
+                print("Test.cleanup() DONE")
 
     def __init__(self, rootPath):
         if debug:
-            print "DotnetBunny.__init__( " + rootPath.__str__() + " )"
+            print("DotnetBunny.__init__( " + rootPath.__str__() + " )")
 
         self.rootPath = rootPath
         self.total = 0
@@ -159,7 +160,7 @@ class DotnetBunny(object):
 
     def runTests(self):
         if debug:
-            print "DotnetBunny.runTests()"
+            print("DotnetBunny.runTests()")
 
         logfile.writelines(".NET Bunny: Running tests...\n")
 
@@ -177,7 +178,7 @@ class DotnetBunny(object):
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print "Failed to create the test {0} with Exception: {1}\n{2}\n{3} @ {4}".format(subdir, exc_type, e.__str__(), fname, exc_tb.tb_lineno)
+                print("Failed to create the test {0} with Exception: {1}\n{2}\n{3} @ {4}".format(subdir, exc_type, e.__str__(), fname, exc_tb.tb_lineno))
                 logfile.writelines(path + ".Create Exception: {0}\n{1}\n{2} @ {3}".format(exc_type, e.__str__(), fname, exc_tb.tb_lineno))
                 sys.stdout.flush()
                 traceback.print_tb(exc_tb)
@@ -200,7 +201,7 @@ class DotnetBunny(object):
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print "Failed to cleanup before the test {0} with Exception: {1}\n{2}\n{3} @ {4}".format(subdir, exc_type, e.__str__(), fname, exc_tb.tb_lineno)
+                print("Failed to cleanup before the test {0} with Exception: {1}\n{2}\n{3} @ {4}".format(subdir, exc_type, e.__str__(), fname, exc_tb.tb_lineno))
                 logfile.writelines(test.name + ".Cleanup Exception: {0}\n{1}\n{2} @ {3}".format(exc_type, e.__str__(), fname, exc_tb.tb_lineno))
                 sys.stdout.flush()
                 traceback.print_tb(exc_tb)
@@ -211,7 +212,7 @@ class DotnetBunny(object):
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print "Failed to run the test {0} with Exception: {1}\n{2}\n{3} @ {4}".format(subdir, exc_type, e.__str__(), fname, exc_tb.tb_lineno)
+                print("Failed to run the test {0} with Exception: {1}\n{2}\n{3} @ {4}".format(subdir, exc_type, e.__str__(), fname, exc_tb.tb_lineno))
                 logfile.writelines(test.name + ".Run Exception: {0}\n{1}\n{2} @ {3}".format(exc_type, e.__str__(), fname, exc_tb.tb_lineno))
                 sys.stdout.flush()
                 traceback.print_tb(exc_tb)
@@ -227,7 +228,7 @@ class DotnetBunny(object):
 
     def getResults(self):
         if debug:
-            print "DotnetBunny.getResults()"
+            print("DotnetBunny.getResults()")
 
         results = "Total: {0} Passed: {1} Failed: {2}".format(self.total, self.passed, self.failed)
         logfile.writelines("\n.NET Bunny: Results:\n")
@@ -236,14 +237,14 @@ class DotnetBunny(object):
 
     def createResultsFile(self):
         if debug:
-            print "DotnetBunny.createResultsFile()"
+            print("DotnetBunny.createResultsFile()")
 
         with open("results.properties", "w") as resultsFile:
             resultsFile.write("tests.total={0}\ntests.passed={1}\ntests.failed={2}\n".format(self.total, self.passed, self.failed))
 
     def cleanup(self):
         if debug:
-            print "DotnetBunny.cleanup()"
+            print("DotnetBunny.cleanup()")
 
         logfile.writelines(".NET Bunny: Cleaning up...\n")
         shutil.rmtree("~/.nuget/packages", True)
@@ -253,7 +254,7 @@ class DotnetBunny(object):
         pass
 
 
-print "\n(\\_/)\n(^_^)\n@(\")(\")\n"
+print("\n(\\_/)\n(^_^)\n@(\")(\")\n")
 
 helpString = "Usage: run-tests.py x.y [options]\n" \
        "        x.y - major and minor version of the dotnet package in use\n" \
@@ -267,7 +268,7 @@ helpString = "Usage: run-tests.py x.y [options]\n" \
        "          -h  - display this help"
 
 if len(sys.argv) < 2:
-    print helpString
+    print(helpString)
     sys.exit(1)
 
 exitOnFail = False
@@ -283,7 +284,7 @@ for arg in sys.argv:
         platform = arg[3:]
         if any(platform in s for s in compatiblePlatforms):
             continue
-        print "Invalid platform!"
+        print("Invalid platform!")
         exit(0)
 
     if arg == "-e":
@@ -307,7 +308,7 @@ for arg in sys.argv:
         continue
 
     if arg == "-h" or arg == "--help":
-        print helpString
+        print(helpString)
         sys.exit(0)
 
 reload(sys)
@@ -333,7 +334,7 @@ dotnetBunny = DotnetBunny(rootPath)
 
 dotnetBunny.cleanup()
 dotnetBunny.runTests()
-print dotnetBunny.getResults()
+print(dotnetBunny.getResults())
 if createResultsFile:
     dotnetBunny.createResultsFile()
 
