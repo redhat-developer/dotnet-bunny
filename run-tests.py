@@ -90,12 +90,12 @@ class DotnetBunny(object):
             if self.type == "xunit":
                 try:
                     process = subprocess.Popen(["dotnet", "restore"], cwd=path, stdout=subprocess.PIPE,
-                                               stderr=subprocess.STDOUT)
+                                               stderr=subprocess.STDOUT, universal_newlines=True)
                     testlog = testlog + process.communicate()[0]
                     errorCode = process.wait()
                     if errorCode == 0:
                         process = subprocess.Popen(["dotnet", "test"], cwd=path, stdout=subprocess.PIPE,
-                                                   stderr=subprocess.STDOUT)
+                                                   stderr=subprocess.STDOUT, universal_newlines=True)
                         testlog = testlog + process.communicate()[0]
                         errorCode = process.wait()
                 except Exception as e:
@@ -106,7 +106,7 @@ class DotnetBunny(object):
             elif self.type == "bash":
                 try:
                     mypath = os.path.join(path, "test.sh")
-                    process = subprocess.Popen([mypath, versionString], cwd=path, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    process = subprocess.Popen([mypath, versionString], cwd=path, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
                     testlog = testlog + process.communicate()[0]
                     errorCode = process.wait()
                 except Exception as e:
@@ -308,8 +308,11 @@ for arg in sys.argv:
         print(helpString)
         sys.exit(0)
 
-reload(sys)
-sys.setdefaultencoding('utf8')
+try:
+    reload(sys)
+    sys.setdefaultencoding('utf8')
+except NameError:
+    pass # python 3 is already utf8
 
 logfilename = "logfile"
 logfile = open(logfilename + ".log", "w")
