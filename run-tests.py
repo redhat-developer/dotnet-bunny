@@ -327,7 +327,7 @@ version = int(versionString.replace('.', ""))
 if version < 10000:
     version = version * 1000
 
-frameworkExpression = re.compile("<TargetFramework>netcoreapp\d\.\d</TargetFramework>", re.M)
+frameworkExpression = re.compile(r"<TargetFramework>netcoreapp\d\.\d</TargetFramework>", re.M)
 
 rootPath = os.path.abspath(os.path.curdir)
 dotnetBunny = DotnetBunny(rootPath)
