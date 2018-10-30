@@ -122,7 +122,7 @@ class DotnetBunny(object):
                 logfile.writelines(self.name + ": Unknown test type " + self.type + "\n")
 
             if errorCode > 0:
-                with open(testlogFilename, 'w') as testlogFile:
+                with open(os.path.join(logDirectory, testlogFilename), 'w') as testlogFile:
                     testlogFile.write(self.name + " log:\n\n" + testlog)
 
             if verbose:
@@ -241,7 +241,7 @@ class DotnetBunny(object):
         if debug:
             print("DotnetBunny.createResultsFile()")
 
-        with open("results.properties", "w") as resultsFile:
+        with open(os.path.join(logDirectory, "results.properties"), "w") as resultsFile:
             resultsFile.write("tests.total={0}\ntests.passed={1}\ntests.failed={2}\n".format(self.total, self.passed, self.failed))
 
     def cleanup(self):
@@ -310,6 +310,7 @@ executeDisabled = False
 debug = False
 platforms = identifyPlatform()
 knownPlatforms = getKnownPlatforms()
+logDirectory = os.getcwd()
 
 for arg in sys.argv:
     if arg.startswith("-p="):
@@ -341,6 +342,13 @@ for arg in sys.argv:
         debug = True
         continue
 
+    if arg.startswith("-l="):
+        logDirectory = os.path.join(logDirectory, arg[3:])
+        if not os.path.isdir(logDirectory):
+            print("Log directory %s doesn't exist" % (logDirectory,))
+            sys.exit(1)
+        continue
+
     if arg == "-h" or arg == "--help":
         print(helpString)
         sys.exit(0)
@@ -356,7 +364,7 @@ except NameError:
     pass  # python 3 is already utf8
 
 logfilename = "logfile"
-logfile = open(logfilename + ".log", "w")
+logfile = open(os.path.join(logDirectory, logfilename) + ".log", "w")
 logfile.writelines("\n\n(\\_/)\n(^_^)\n@(\")(\")\n\n")
 
 versionString = sys.argv[1]
