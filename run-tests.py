@@ -36,6 +36,10 @@ class DotnetBunny(object):
 
             self.versionSpecific = config["versionSpecific"]
             self.platformBlacklist = config["platformBlacklist"]
+            for p in self.platformBlacklist:
+                if not p in knownPlatforms:
+                    print("Unknown platform %s in test %s" % (p, self.name))
+
             self.shouldCleanup = config["cleanup"]
             self.files = files
 
@@ -191,7 +195,7 @@ class DotnetBunny(object):
                 (not test.versionSpecific and test.version <= version)):
                 continue
 
-            if any(platform in s for s in test.platformBlacklist):
+            if any(platform in test.platformBlacklist for platform in platforms):
                 continue
 
             try:
@@ -250,13 +254,41 @@ class DotnetBunny(object):
         shutil.rmtree("~/.dotnet", True)
         shutil.rmtree("~/.templateengine", True)
 
+def getKnownPlatforms():
+    platforms = []
+    platforms.append("rhel")
+    platforms.extend(["rhel" + str(i) for i in range(6,10)])
+    platforms.append("fedora")
+    platforms.extend(["fedora" + str(i) for i in range(26,40)])
+    return platforms
+
+def identifyPlatform():
+    """Return a list of platforms that this platform is compatible with
+
+For example, Fedora 28 will return ['fedora', 'fedora28']
+"""
+    name_id = ""
+    version_id = ""
+    with open("/etc/os-release") as os_release:
+        for line in os_release:
+            line = line.strip()
+            key = line.split("=")[0]
+            value = '='.join(line.split("=")[1:])
+            if key == "ID":
+                name_id = value
+            elif key == "VERSION_ID":
+                if "." in value:
+                    version_id = value[:value.index(".")]
+                else:
+                    version_id = value
+    return [name_id, name_id + version_id]
 
 print("\n(\\_/)\n(^_^)\n@(\")(\")\n")
 
 helpString = "Usage: run-tests.py x.y [options]\n" \
        "        x.y - major and minor version of the dotnet package in use\n" \
        "        options:\n" \
-       "          -p=rhel7|rhel8|fedora - platform, defaults to rhel7\n" \
+       "          -p=rhelX|fedora|fedoraXY - platform\n" \
        "          -e  - exit on the first failed test\n" \
        "          -v  - verbose logfile.log output\n" \
        "          -r  - create results.properties file for jenkins\n" \
@@ -273,16 +305,18 @@ verbose = False
 createResultsFile = False
 executeDisabled = False
 debug = False
-platform = "rhel7"
-compatiblePlatforms = ["rhel7", "rhel8", "fedora"]
+platforms = identifyPlatform()
+knownPlatforms = getKnownPlatforms()
 
 for arg in sys.argv:
     if arg.startswith("-p="):
-        platform = arg[3:]
-        if any(platform in s for s in compatiblePlatforms):
+        platform_string = arg[3:]
+        platforms = platform_string.split(",")
+        if any(platform in knownPlatforms for platform in platforms):
             continue
-        print("Invalid platform!")
-        exit(0)
+        print("Unknown platforms: " + str(platforms))
+        print("Known platforms are: " + str(knownPlatforms))
+        exit(1)
 
     if arg == "-e":
         exitOnFail = True
@@ -307,6 +341,10 @@ for arg in sys.argv:
     if arg == "-h" or arg == "--help":
         print(helpString)
         sys.exit(0)
+
+if debug:
+    print("Known Platforms: " + str(knownPlatforms))
+    print("Current Platforms: " + str(platforms))
 
 try:
     reload(sys)

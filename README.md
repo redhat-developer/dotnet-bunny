@@ -24,6 +24,8 @@ Example config file:
   "cleanup": true,
   "platformBlacklist": [
     "fedora"
+    "fedora29"
+    "rhel7"
     ]
 }
 ```
