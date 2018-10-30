@@ -19,7 +19,7 @@ class DotnetBunny(object):
 
         def __init__(self, configPath, files):
             if debug:
-                print("Test.__init__( " + configPath.__str__() + " )")
+                print("Test.__init__( " + str(configPath) + " )")
 
             config = json.load(open(configPath))
 
@@ -44,7 +44,7 @@ class DotnetBunny(object):
 
         def setFrameworkVersion(self, path):
             if debug:
-                print("Test.setFrameworkVersion( " + path.__str__() + " )")
+                print("Test.setFrameworkVersion( " + str(path) + " )")
 
             if not os.path.exists(path):
                 return
@@ -61,9 +61,9 @@ class DotnetBunny(object):
 
         def copyProjectJson(self, path):
             if debug:
-                print("Test.copyProjectJson( " + path.__str__() + " )")
+                print("Test.copyProjectJson( " + str(path) + " )")
 
-            shutil.copy(os.path.join(rootPath, "project" + major.__str__() + minor.__str__() + (
+            shutil.copy(os.path.join(rootPath, "project" + str(major) + str(minor) + (
                 "xunit" if self.type == "xunit" else "") + ".json"), os.path.join(path, "project.json"))
 
             if debug:
@@ -72,7 +72,7 @@ class DotnetBunny(object):
         # Returns the exit code of the test.
         def run(self, path):
             if debug:
-                print("Test.run( " + path.__str__() + " )")
+                print("Test.run( " + str(path) + " )")
 
             print("Running " + self.name)
             logfile.writelines(self.name + ": Running test...\n")
@@ -101,7 +101,7 @@ class DotnetBunny(object):
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                    testlog = testlog + "Process Exception: {0}\n{1} @ {2}".format(e.__str__(), fname, exc_tb.tb_lineno)
+                    testlog = testlog + "Process Exception: {0}\n{1} @ {2}".format(str(e), fname, exc_tb.tb_lineno)
                     errorCode = 1
             elif self.type == "bash":
                 try:
@@ -112,7 +112,7 @@ class DotnetBunny(object):
                 except Exception as e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                    testlog = testlog + "Process Exception: {0}\n{1} @ {2}".format(e.__str__(), fname, exc_tb.tb_lineno)
+                    testlog = testlog + "Process Exception: {0}\n{1} @ {2}".format(str(e), fname, exc_tb.tb_lineno)
                     errorCode = 1
             else:
                 logfile.writelines(self.name + ": Unknown test type " + self.type + "\n")
@@ -136,7 +136,7 @@ class DotnetBunny(object):
 
         def cleanup(self, path):
             if debug:
-                print("Test.cleanup( " + path.__str__() + " )")
+                print("Test.cleanup( " + str(path) + " )")
 
             if self.shouldCleanup:
                 logfile.writelines(self.name + ": Cleanup...\n")
@@ -151,7 +151,7 @@ class DotnetBunny(object):
 
     def __init__(self, rootPath):
         if debug:
-            print("DotnetBunny.__init__( " + rootPath.__str__() + " )")
+            print("DotnetBunny.__init__( " + str(rootPath) + " )")
 
         self.rootPath = rootPath
         self.total = 0
@@ -178,8 +178,8 @@ class DotnetBunny(object):
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print("Failed to create the test {0} with Exception: {1}\n{2}\n{3} @ {4}".format(subdir, exc_type, e.__str__(), fname, exc_tb.tb_lineno))
-                logfile.writelines(path + ".Create Exception: {0}\n{1}\n{2} @ {3}".format(exc_type, e.__str__(), fname, exc_tb.tb_lineno))
+                print("Failed to create the test {0} with Exception: {1}\n{2}\n{3} @ {4}".format(subdir, exc_type, str(e), fname, exc_tb.tb_lineno))
+                logfile.writelines(path + ".Create Exception: {0}\n{1}\n{2} @ {3}".format(exc_type, str(e), fname, exc_tb.tb_lineno))
                 sys.stdout.flush()
                 traceback.print_tb(exc_tb)
                 self.failed += 1
@@ -201,8 +201,8 @@ class DotnetBunny(object):
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print("Failed to cleanup before the test {0} with Exception: {1}\n{2}\n{3} @ {4}".format(subdir, exc_type, e.__str__(), fname, exc_tb.tb_lineno))
-                logfile.writelines(test.name + ".Cleanup Exception: {0}\n{1}\n{2} @ {3}".format(exc_type, e.__str__(), fname, exc_tb.tb_lineno))
+                print("Failed to cleanup before the test {0} with Exception: {1}\n{2}\n{3} @ {4}".format(subdir, exc_type, str(e), fname, exc_tb.tb_lineno))
+                logfile.writelines(test.name + ".Cleanup Exception: {0}\n{1}\n{2} @ {3}".format(exc_type, str(e), fname, exc_tb.tb_lineno))
                 sys.stdout.flush()
                 traceback.print_tb(exc_tb)
 
@@ -212,8 +212,8 @@ class DotnetBunny(object):
             except Exception as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print("Failed to run the test {0} with Exception: {1}\n{2}\n{3} @ {4}".format(subdir, exc_type, e.__str__(), fname, exc_tb.tb_lineno))
-                logfile.writelines(test.name + ".Run Exception: {0}\n{1}\n{2} @ {3}".format(exc_type, e.__str__(), fname, exc_tb.tb_lineno))
+                print("Failed to run the test {0} with Exception: {1}\n{2}\n{3} @ {4}".format(subdir, exc_type, str(e), fname, exc_tb.tb_lineno))
+                logfile.writelines(test.name + ".Run Exception: {0}\n{1}\n{2} @ {3}".format(exc_type, str(e), fname, exc_tb.tb_lineno))
                 sys.stdout.flush()
                 traceback.print_tb(exc_tb)
                 self.failed += 1
