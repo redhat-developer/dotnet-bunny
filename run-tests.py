@@ -254,6 +254,7 @@ class DotnetBunny(object):
         shutil.rmtree("~/.dotnet", True)
         shutil.rmtree("~/.templateengine", True)
 
+
 def getKnownPlatforms():
     platforms = []
     platforms.append("rhel")
@@ -261,6 +262,7 @@ def getKnownPlatforms():
     platforms.append("fedora")
     platforms.extend(["fedora" + str(i) for i in range(26,40)])
     return platforms
+
 
 def identifyPlatform():
     """Return a list of platforms that this platform is compatible with
@@ -282,6 +284,7 @@ For example, Fedora 28 will return ['fedora', 'fedora28']
                 else:
                     version_id = value
     return [name_id, name_id + version_id]
+
 
 print("\n(\\_/)\n(^_^)\n@(\")(\")\n")
 
@@ -350,7 +353,7 @@ try:
     reload(sys)
     sys.setdefaultencoding('utf8')
 except NameError:
-    pass # python 3 is already utf8
+    pass  # python 3 is already utf8
 
 logfilename = "logfile"
 logfile = open(logfilename + ".log", "w")
