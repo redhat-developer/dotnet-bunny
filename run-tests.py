@@ -143,8 +143,6 @@ class DotnetBunny(object):
                 shutil.rmtree(os.path.join(path, "bin"), True)
                 shutil.rmtree(os.path.join(path, "obj"), True)
                 shutil.rmtree(os.path.join(path, "project.lock.json"), True)
-                pass
-            pass
 
             if debug:
                 print("Test.cleanup() DONE")
@@ -251,7 +249,6 @@ class DotnetBunny(object):
         shutil.rmtree("~/.local/share/NuGet", True)
         shutil.rmtree("~/.dotnet", True)
         shutil.rmtree("~/.templateengine", True)
-        pass
 
 
 print("\n(\\_/)\n(^_^)\n@(\")(\")\n")
