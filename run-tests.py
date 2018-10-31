@@ -276,6 +276,7 @@ For example, Fedora 28 will return ['fedora', 'fedora28']
             line = line.strip()
             key = line.split("=")[0]
             value = '='.join(line.split("=")[1:])
+            value = unquoteValue(value)
             if key == "ID":
                 name_id = value
             elif key == "VERSION_ID":
@@ -284,6 +285,12 @@ For example, Fedora 28 will return ['fedora', 'fedora28']
                 else:
                     version_id = value
     return [name_id, name_id + version_id]
+
+
+def unquoteValue(value):
+    if value.startswith('"') and value.endswith('"'):
+        value = value[1:-1]
+    return value
 
 
 print("\n(\\_/)\n(^_^)\n@(\")(\")\n")
