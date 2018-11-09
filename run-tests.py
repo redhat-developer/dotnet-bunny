@@ -11,7 +11,25 @@ import subprocess
 import shutil
 import json
 import re
+try:
+    from urllib2 import urlopen
+except:
+    from urllib.request import urlopen
 
+
+def generateNuGetConfigContents(version):
+    gitBranch = "release/" + version
+    url = "https://raw.githubusercontent.com/dotnet/source-build/" + gitBranch + "/ProdConFeed.txt"
+    response = urlopen(url)
+    nuGetFeed = response.read().strip()
+    return """<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+ <packageSources>
+    <add key="prodcon" value="%s" />
+ </packageSources>
+</configuration>
+
+""" % (nuGetFeed,)
 
 class DotnetBunny(object):
 
@@ -90,6 +108,14 @@ class DotnetBunny(object):
             testlogFilename = logfilename + "-" + self.name + ".log"
             testlog = ""
             errorCode = 1
+
+            if needsCustomNuGetConfig:
+                nuGetConfigLocation = os.path.join(path, "nuget.config")
+                if os.path.exists(nuGetConfigLocation):
+                    print("error: nugetconfig %s already exists " % (nuGetConfigLocation,))
+                    exit(2)
+                with open(nuGetConfigLocation, "w") as nugetConfig:
+                    nugetConfig.write(nuGetConfig)
 
             if self.type == "xunit":
                 try:
@@ -299,6 +325,7 @@ helpString = "Usage: run-tests.py x.y [options]\n" \
        "        x.y - major and minor version of the dotnet package in use\n" \
        "        options:\n" \
        "          -p=rhelX|fedora|fedoraXY - platform\n" \
+       "          --packages-not-live - packages are not live; use prodcon nuget feed\n" \
        "          -e  - exit on the first failed test\n" \
        "          -v  - verbose logfile.log output\n" \
        "          -r  - create results.properties file for jenkins\n" \
@@ -318,6 +345,8 @@ debug = False
 platforms = identifyPlatform()
 knownPlatforms = getKnownPlatforms()
 logDirectory = os.getcwd()
+needsCustomNuGetConfig = False
+nuGetConfig = ""
 
 for arg in sys.argv:
     if arg.startswith("-p="):
@@ -347,6 +376,10 @@ for arg in sys.argv:
 
     if arg == "-d":
         debug = True
+        continue
+
+    if arg == "--packages-not-live":
+        needsCustomNuGetConfig = True
         continue
 
     if arg.startswith("-l="):
@@ -384,6 +417,11 @@ if version < 10000:
     version = version * 1000
 
 frameworkExpression = re.compile(r"<TargetFramework>netcoreapp\d\.\d</TargetFramework>", re.M)
+
+if needsCustomNuGetConfig:
+    nuGetConfig = generateNuGetConfigContents(majorMinorString)
+    if debug:
+        print(nuGetConfig)
 
 rootPath = os.path.abspath(os.path.curdir)
 dotnetBunny = DotnetBunny(rootPath)
