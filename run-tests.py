@@ -328,7 +328,7 @@ For example, Fedora 28 will return ['fedora', 'fedora28']
             line = line.strip()
             key = line.split("=")[0]
             value = '='.join(line.split("=")[1:])
-            value = unquoteValue(value)
+            value = unquoteShellValue(value)
             if key == "ID":
                 name_id = value
             elif key == "VERSION_ID":
@@ -339,7 +339,7 @@ For example, Fedora 28 will return ['fedora', 'fedora28']
     return [name_id, name_id + version_id]
 
 
-def unquoteValue(value):
+def unquoteShellValue(value):
     if value.startswith('"') and value.endswith('"'):
         value = value[1:-1]
     return value
