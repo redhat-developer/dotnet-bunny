@@ -95,8 +95,8 @@ class DotnetBunny(object):
             testlog = ""
             errorCode = 1
 
+            nuGetConfigLocation = os.path.join(path, "nuget.config")
             if nuGetConfig:
-                nuGetConfigLocation = os.path.join(path, "nuget.config")
                 if os.path.exists(nuGetConfigLocation):
                     print("error: nugetconfig at %s already exists " % (nuGetConfigLocation,))
                     exit(2)
@@ -136,6 +136,9 @@ class DotnetBunny(object):
             if errorCode > 0:
                 with open(os.path.join(logDirectory, testlogFilename), 'w') as testlogFile:
                     testlogFile.write(self.name + " log:\n\n" + testlog)
+
+            if nuGetConfig and os.path.exists(nuGetConfigLocation):
+                os.remove(nuGetConfigLocation)
 
             if verbose:
                 prefix = "\n" + self.name + ":  "
