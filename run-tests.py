@@ -351,7 +351,6 @@ helpString = "Usage: run-tests.py x.y [options]\n" \
        "        x.y - major and minor version of the dotnet package in use\n" \
        "        options:\n" \
        "          -p=rhelX|fedora|fedoraXY - platform\n" \
-       "          --packages-not-live - packages are not live; use prodcon nuget feed\n" \
        "          -e  - exit on the first failed test\n" \
        "          -v  - verbose logfile.log output\n" \
        "          -r  - create results.properties file for jenkins\n" \
