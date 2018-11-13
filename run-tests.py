@@ -115,9 +115,8 @@ class DotnetBunny(object):
                         testlog = testlog + process.communicate()[0]
                         errorCode = process.wait()
                 except Exception as e:
-                    exc_type, exc_obj, exc_tb = sys.exc_info()
-                    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                    testlog = testlog + "Process Exception: {0}\n{1} @ {2}".format(str(e), fname, exc_tb.tb_lineno)
+                    msg, _ = getExceptionTrace()
+                    testlog = testlog + "Process " + msg
                     errorCode = 1
             elif self.type == "bash":
                 try:
@@ -126,9 +125,8 @@ class DotnetBunny(object):
                     testlog = testlog + process.communicate()[0]
                     errorCode = process.wait()
                 except Exception as e:
-                    exc_type, exc_obj, exc_tb = sys.exc_info()
-                    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                    testlog = testlog + "Process Exception: {0}\n{1} @ {2}".format(str(e), fname, exc_tb.tb_lineno)
+                    msg, _ = getExceptionTrace()
+                    testlog = testlog + "Process " + msg
                     errorCode = 1
             else:
                 logfile.writelines(self.name + ": Unknown test type " + self.type + "\n")
@@ -193,12 +191,11 @@ class DotnetBunny(object):
             try:
                 test = DotnetBunny.Test(path, files)
             except Exception as e:
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print("Failed to create the test {0} with Exception: {1}\n{2}\n{3} @ {4}".format(subdir, exc_type, str(e), fname, exc_tb.tb_lineno))
-                logfile.writelines(path + ".Create Exception: {0}\n{1}\n{2} @ {3}".format(exc_type, str(e), fname, exc_tb.tb_lineno))
+                msg, traceback = getExceptionTrace()
+                print("Failed to create the test {0} with " + msg)
+                logfile.writelines(path + ".Create " + msg)
                 sys.stdout.flush()
-                traceback.print_tb(exc_tb)
+                traceback.print_tb(traceback)
                 self.failed += 1
                 continue
 
@@ -269,6 +266,12 @@ class DotnetBunny(object):
         shutil.rmtree("~/.dotnet", True)
         shutil.rmtree("~/.templateengine", True)
 
+
+def getExceptionTrace():
+    "Return a tuple of (message, traceback))"
+    exc_type, exc_obj, exc_tb = sys.exc_info()
+    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+    return ("Exception: {0}\n{1}\n{2} @ {3}".format(exc_type, str(e), fname, exc_tb.tb_lineno), exec_tb)
 
 def getDotNetRuntimeVersion():
     "Guess the latest runtime version for the default dotnet on the command line"
