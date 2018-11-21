@@ -191,11 +191,11 @@ class DotnetBunny(object):
             try:
                 test = DotnetBunny.Test(path, files)
             except Exception as e:
-                msg, traceback = getExceptionTrace()
-                print("Failed to create the test {0} with " + msg)
+                msg, tb = getExceptionTrace()
+                print("Failed to create the test {0} with {1}".format(subdir, msg))
                 logfile.writelines(path + ".Create " + msg)
                 sys.stdout.flush()
-                traceback.print_tb(traceback)
+                traceback.print_tb(tb)
                 self.failed += 1
                 continue
 
@@ -213,10 +213,9 @@ class DotnetBunny(object):
             try:
                 test.cleanup(subdir)
             except Exception as e:
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print("Failed to cleanup before the test {0} with Exception: {1}\n{2}\n{3} @ {4}".format(subdir, exc_type, str(e), fname, exc_tb.tb_lineno))
-                logfile.writelines(test.name + ".Cleanup Exception: {0}\n{1}\n{2} @ {3}".format(exc_type, str(e), fname, exc_tb.tb_lineno))
+                msg, exc_tb = getExceptionTrace()
+                print("Failed to cleanup before the test {0} with {1}".format(subdir, msg))
+                logfile.writelines(test.name + ".Cleanup " + msg)
                 sys.stdout.flush()
                 traceback.print_tb(exc_tb)
 
@@ -224,10 +223,9 @@ class DotnetBunny(object):
             try:
                 result = test.run(subdir)
             except Exception as e:
-                exc_type, exc_obj, exc_tb = sys.exc_info()
-                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                print("Failed to run the test {0} with Exception: {1}\n{2}\n{3} @ {4}".format(subdir, exc_type, str(e), fname, exc_tb.tb_lineno))
-                logfile.writelines(test.name + ".Run Exception: {0}\n{1}\n{2} @ {3}".format(exc_type, str(e), fname, exc_tb.tb_lineno))
+                msg, exc_tb = getExceptionTrace()
+                print("Failed to run the test {0} with  {1}".format(subdir, msg))
+                logfile.writelines(test.name + ".Run " + msg)
                 sys.stdout.flush()
                 traceback.print_tb(exc_tb)
                 self.failed += 1
@@ -268,10 +266,10 @@ class DotnetBunny(object):
 
 
 def getExceptionTrace():
-    "Return a tuple of (message, traceback))"
+    "Return a tuple of (message, traceback)"
     exc_type, exc_obj, exc_tb = sys.exc_info()
     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-    return ("Exception: {0}\n{1}\n{2} @ {3}".format(exc_type, str(e), fname, exc_tb.tb_lineno), exec_tb)
+    return ("Exception: {0}\n{1}\n{2} @ {3}".format(exc_type, str(exc_obj), fname, exc_tb.tb_lineno), exc_tb)
 
 def getDotNetRuntimeVersion():
     "Guess the latest runtime version for the default dotnet on the command line"
