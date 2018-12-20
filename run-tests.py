@@ -100,6 +100,8 @@ class DotnetBunny(object):
                 if os.path.exists(nuGetConfigLocation):
                     print("error: nugetconfig at %s already exists " % (nuGetConfigLocation,))
                     exit(2)
+                if debug:
+                    print("Test.run(): adding nuget config")
                 with open(nuGetConfigLocation, "w") as nugetConfig:
                     nugetConfig.write(nuGetConfig)
 
@@ -301,15 +303,15 @@ def getProdConFeedUrl(branchName):
     response = urlopen(url)
     return response.read().strip()
 
-def generateNuGetConfigContentsForFeed(url):
+def generateNuGetConfigContentsForFeeds(urls):
+    sources = '\n    '.join('<add key="%s" value="%s" />' % (index, url) for index, url in enumerate(urls))
     return """<?xml version="1.0" encoding="utf-8"?>
 <configuration>
- <packageSources>
-    <add key="prodcon" value="%s" />
- </packageSources>
+  <packageSources>
+    %s
+  </packageSources>
 </configuration>
-
-""" % (url,)
+""" % (sources,)
 
 def getKnownPlatforms():
     platforms = []
@@ -356,6 +358,7 @@ helpString = "Usage: run-tests.py x.y [options]\n" \
        "        options:\n" \
        "          -p=rhelX|fedora|fedoraXY - platform\n" \
        "          -e  - exit on the first failed test\n" \
+       "          -s=url - additional nuget source(s)\n" \
        "          -v  - verbose logfile.log output\n" \
        "          -r  - create results.properties file for jenkins\n" \
        "          -x  - execute disabled tests as well\n" \
@@ -374,6 +377,7 @@ debug = False
 platforms = identifyPlatform()
 knownPlatforms = getKnownPlatforms()
 logDirectory = os.getcwd()
+nuGetUrls = []
 nuGetConfig = ""
 
 for arg in sys.argv:
@@ -385,6 +389,10 @@ for arg in sys.argv:
         print("Unknown platforms: " + str(platforms))
         print("Known platforms are: " + str(knownPlatforms))
         exit(1)
+
+    if arg.startswith("-s="):
+        url = arg[3:]
+        nuGetUrls.append(url)
 
     if arg == "-e":
         exitOnFail = True
@@ -448,10 +456,14 @@ if latestDotNetRuntimeVersion and not nugetPackagesAreLive(latestDotNetRuntimeVe
     prodConUrl = getProdConFeedUrl(branchName)
     message = "Packages for runtime version %s are not live on nuget.org, using prodcon nuget repository %s\n" \
         % (latestDotNetRuntimeVersion, prodConUrl)
+    nuGetUrls.append(prodConUrl)
     print(message)
     logfile.writelines(message)
-    nuGetConfig = generateNuGetConfigContentsForFeed(prodConUrl)
+
+if nuGetUrls:
+    nuGetConfig = generateNuGetConfigContentsForFeeds(nuGetUrls)
     if debug:
+        print("Using nuget config:")
         print(nuGetConfig)
 
 rootPath = os.path.abspath(os.path.curdir)
