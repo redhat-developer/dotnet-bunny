@@ -3,6 +3,7 @@ logfile*
 results.properties
 sec/
 regular/
+nuget-confidential/
 dotnet-regular-tests/
 *.userprefs
 *.idea/
