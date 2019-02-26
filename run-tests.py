@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # .NET Bunny is a simple script that hops through the folders and runs dotnet tests based on json configuration.
 # Radka Janek | rjanekov@redhat.com | https://github.com/redhat-developer/dotnet-bunny
@@ -467,6 +467,11 @@ if nuGetUrls:
         print(nuGetConfig)
 
 rootPath = os.path.abspath(os.path.curdir)
+
+processFree = subprocess.Popen(["free", "-h"], cwd=rootPath, stdout=subprocess.PIPE,
+                           stderr=subprocess.STDOUT, universal_newlines=True)
+print("Current resources:\n" + processFree.communicate()[0])
+
 dotnetBunny = DotnetBunny(rootPath)
 
 dotnetBunny.cleanup()
