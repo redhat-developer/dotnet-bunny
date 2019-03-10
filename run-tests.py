@@ -142,11 +142,11 @@ class DotnetBunny(object):
 
             if verbose:
                 prefix = "\n" + self.name + ":  "
-                logfile.writelines(self.name + ":  " + testlog.replace("\n", prefix) + "\n")
+                print(self.name + ":  " + testlog.replace("\n", prefix))
 
             result = "Result: " + (("FAIL - Code: " + str(errorCode)) if errorCode > 0 else "PASS")
             logfile.writelines(self.name + ":  " + result + "\n\n")
-            print(result)
+            print(result + "\n")
 
             if debug:
                 print("Test.run() DONE")
@@ -359,7 +359,7 @@ helpString = "Usage: run-tests.py x.y [options]\n" \
        "          -p=rhelX|fedora|fedoraXY - platform\n" \
        "          -e  - exit on the first failed test\n" \
        "          -s=url - additional nuget source(s)\n" \
-       "          -v  - verbose logfile.log output\n" \
+       "          -v  - verbose console output\n" \
        "          -r  - create results.properties file for jenkins\n" \
        "          -x  - execute disabled tests as well\n" \
        "          -d  - debug console spam\n" \
