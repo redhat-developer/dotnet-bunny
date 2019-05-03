@@ -301,7 +301,7 @@ def getProdConFeedUrl(branchName):
     "Find the prodcon url for the given release branch of github.com/dotnet/source-build."
     url = "https://raw.githubusercontent.com/dotnet/source-build/" + branchName + "/ProdConFeed.txt"
     response = urlopen(url)
-    return response.read().strip()
+    return response.read().strip().decode('utf-8')
 
 def generateNuGetConfigContentsForFeeds(urls):
     sources = '\n    '.join('<add key="%s" value="%s" />' % (index, url) for index, url in enumerate(urls))
