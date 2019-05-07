@@ -1,0 +1,3 @@
+#!/usr/bin/bash
+
+dotnet Turkey/bin/Release/netcoreapp2.1/publish/Turkey.dll "$@"
