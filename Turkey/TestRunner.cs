@@ -49,8 +49,7 @@ namespace Turkey
                 if (result.Status == TestStatus.Failed)
                 {
                     var logFileName = $"logfile-{test.Name}.log";
-                    // TODO more portable, please
-                    var path = logDirectory.ToString() + "/" + logFileName;
+                    var path = Path.Combine(logDirectory.FullName, logFileName);
                     using (StreamWriter sw = new StreamWriter(path, false, Encoding.UTF8))
                     {
                         await sw.WriteAsync("# Standard Output:" + Environment.NewLine);
