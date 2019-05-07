@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Turkey
@@ -50,10 +51,13 @@ namespace Turkey
                     var logFileName = $"logfile-{test.Name}.log";
                     // TODO more portable, please
                     var path = logDirectory.ToString() + "/" + logFileName;
-                    await File.WriteAllTextAsync(path, "# Standard Output:" + Environment.NewLine);
-                    await File.AppendAllTextAsync(path, result.StandardOutput);
-                    await File.AppendAllTextAsync(path, "# Standard Error:" + Environment.NewLine);
-                    await File.AppendAllTextAsync(path, result.StandardError);
+                    using (StreamWriter sw = new StreamWriter(path, false, Encoding.UTF8))
+                    {
+                        await sw.WriteAsync("# Standard Output:" + Environment.NewLine);
+                        await sw.WriteAsync(result.StandardOutput);
+                        await sw.WriteAsync("# Standard Error:" + Environment.NewLine);
+                        await sw.WriteAsync(result.StandardError);
+                    }
                 }
 
                 if (Console.IsOutputRedirected || Console.IsErrorRedirected)
