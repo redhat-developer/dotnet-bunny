@@ -1,0 +1,11 @@
+{
+  "name": "BashTestSpecificToDotNet50",
+  "enabled": true,
+  "version": "50.0",
+  "versionSpecific": true,
+  "type": "bash",
+  "cleanup": true,
+  "platformBlacklist":[
+  ]
+}
+

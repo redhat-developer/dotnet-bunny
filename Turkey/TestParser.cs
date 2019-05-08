@@ -23,6 +23,11 @@ namespace Turkey
             var fileName = Path.Combine(directory.FullName, "test.json");
             var descriptor = JsonConvert.DeserializeObject<TestDescriptor>(File.ReadAllText(fileName));
 
+            if (!directory.Name.Equals(descriptor.Name))
+            {
+                Console.WriteLine($"Warning: mismatch in directory name vs test name in {descriptor.Name} test");
+            }
+
             var test = new BashTest(directory, descriptor);
             test.Skip = !ShouldRunTest(system, descriptor);
             return test;

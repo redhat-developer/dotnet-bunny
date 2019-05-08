@@ -1,0 +1,11 @@
+{
+  "name": "DisabledBashTest",
+  "enabled": false,
+  "version": "1.x",
+  "versionSpecific": false,
+  "type": "bash",
+  "cleanup": true,
+  "platformBlacklist":[
+  ]
+}
+

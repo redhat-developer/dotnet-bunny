@@ -1,0 +1,11 @@
+{
+  "name": "FailingBashTest",
+  "enabled": true,
+  "version": "1.0",
+  "versionSpecific": false,
+  "type": "bash",
+  "cleanup": true,
+  "platformBlacklist":[
+  ]
+}
+
