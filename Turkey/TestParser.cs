@@ -23,7 +23,7 @@ namespace Turkey
             var fileName = Path.Combine(directory.FullName, "test.json");
             var descriptor = JsonConvert.DeserializeObject<TestDescriptor>(File.ReadAllText(fileName));
 
-            if (!directory.Name.Equals(descriptor.Name))
+            if (!directory.Name.Equals(descriptor.Name, StringComparison.Ordinal))
             {
                 Console.WriteLine($"Warning: mismatch in directory name vs test name in {descriptor.Name} test");
             }
@@ -62,7 +62,7 @@ namespace Turkey
         {
             if (test.VersionSpecific)
             {
-                if ((runtimeVersion.Major + ".x").Equals(test.Version))
+                if ((runtimeVersion.Major + ".x").Equals(test.Version, StringComparison.Ordinal))
                 {
                     return true;
                 }

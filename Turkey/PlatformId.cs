@@ -22,10 +22,10 @@ namespace Turkey
             var versionId = GetValue("VERSION_ID", lines);
             if (id.Equals("rhel", StringComparison.Ordinal))
             {
-                int indexOfDot = versionId.IndexOf(".");
+                int indexOfDot = versionId.IndexOf(".", StringComparison.Ordinal);
                 if (indexOfDot > 0)
                 {
-                    versionId = versionId.Substring(0, versionId.IndexOf("."));
+                    versionId = versionId.Substring(0, indexOfDot);
                 }
             }
             var platforms = new string[] { "linux", id, id + versionId };
