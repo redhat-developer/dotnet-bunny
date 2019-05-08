@@ -13,7 +13,7 @@ namespace Turkey
 
         protected override async Task<TestResult> InternalRunAsync()
         {
-            FileInfo testFile = new FileInfo(Directory + "/test.sh");
+            FileInfo testFile = new FileInfo(Path.Combine(Directory.FullName, "test.sh"));
             if (!testFile.Exists)
             {
                 throw new Exception();
