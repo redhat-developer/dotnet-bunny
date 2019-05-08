@@ -21,9 +21,6 @@ namespace Turkey
 
         public static async Task<int> Run(bool verbose, string logDir)
         {
-            var runtimeId = new RuntimeId();
-            List<string> currentRuntimeIds = runtimeId.Current;
-
             var currentDirectory = new DirectoryInfo(Directory.GetCurrentDirectory());
 
             DirectoryInfo logDirectory;
@@ -42,7 +39,7 @@ namespace Turkey
             {
                 RuntimeVersion = dotnet.LatestRuntimeVersion,
                 SdkVersion = dotnet.LatestSdkVersion,
-                CurrentPlatformIds = new RuntimeId().Current,
+                CurrentPlatformIds = new PlatformId().CurrentIds,
             };
 
             TestRunner runner = new TestRunner(system, currentDirectory, verbose, logDirectory);
