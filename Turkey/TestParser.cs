@@ -1,25 +1,82 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Turkey
 {
-    public abstract class TestParser
+
+
+    public class TestParser
     {
-        public static async Task<Test> ParseAsync(FileInfo testConfiguration)
+        public Task<Test> ParseAsync(SystemUnderTest system, FileInfo testConfiguration)
+        {
+            var dir = testConfiguration.Directory;
+            return ParseAsync(system, dir, File.ReadAllText(testConfiguration.FullName));
+        }
+
+        public async Task<Test> ParseAsync(SystemUnderTest system, DirectoryInfo directory, string testConfiguration)
         {
             // TODO: async
-            JsonSerializer serializer = new JsonSerializer();
+            var fileName = Path.Combine(directory.FullName, "test.json");
+            var descriptor = JsonConvert.DeserializeObject<TestDescriptor>(File.ReadAllText(fileName));
 
-            using (JsonReader reader = new JsonTextReader(testConfiguration.OpenText()))
+            var test = new BashTest(directory, descriptor);
+            test.Skip = !ShouldRunTest(system, descriptor);
+            return test;
+        }
+
+        public bool ShouldRunTest(SystemUnderTest system, TestDescriptor test)
+        {
+            if (!test.Enabled)
             {
-                JObject obj = (JObject) serializer.Deserialize(reader);
-                var test = new BashTest(testConfiguration.Directory);
-                test.Name = obj.GetValue("name").ToString();
-                return test;
+                return false;
+            }
+
+            if (!VersionMatches(test, system.RuntimeVersion))
+            {
+                return false;
+            }
+
+            var blacklisted = system.CurrentPlatformIds
+                .Where(rid => test.PlatformBlacklist.Contains(rid))
+                .Any();
+
+            if (blacklisted)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+
+        private bool VersionMatches(TestDescriptor test, Version runtimeVersion)
+        {
+            if (test.VersionSpecific)
+            {
+                if ((runtimeVersion.Major + ".x").Equals(test.Version))
+                {
+                    return true;
+                }
+                else if (runtimeVersion.MajorMinor.Equals(test.Version, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+            else
+            {
+                var testVersion = Version.Parse(test.Version);
+                if (runtimeVersion >= testVersion)
+                {
+                    return true;
+                }
+
+                return false;
             }
 
         }

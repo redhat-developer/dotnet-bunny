@@ -14,6 +14,7 @@ namespace Turkey.Tests
             Assert.NotNull(version);
             Assert.Equal(2, version.Major);
             Assert.Equal(1, version.Minor);
+            Assert.Equal("2.1", version.MajorMinor);
         }
 
         [Theory]
@@ -24,7 +25,7 @@ namespace Turkey.Tests
         [InlineData("1.0.0.preview3")]
         [InlineData("1.0.0.a1")]
         [InlineData("1.0.0.a.1")]
-        public void PareableVersions(string input)
+        public void ParseableVersions(string input)
         {
             Version.Parse(input);
         }

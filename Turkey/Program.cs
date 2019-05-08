@@ -36,7 +36,16 @@ namespace Turkey
                 logDirectory = new DirectoryInfo(logDir);
             }
 
-            TestRunner runner = new TestRunner(currentDirectory, verbose, logDirectory);
+            DotNet dotnet = new DotNet();
+
+            SystemUnderTest system = new SystemUnderTest()
+            {
+                RuntimeVersion = dotnet.LatestRuntimeVersion,
+                SdkVersion = dotnet.LatestSdkVersion,
+                CurrentPlatformIds = new RuntimeId().Current,
+            };
+
+            TestRunner runner = new TestRunner(system, currentDirectory, verbose, logDirectory);
 
             var results = await runner.ScanAndRunAsync();
 

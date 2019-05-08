@@ -7,16 +7,13 @@ namespace Turkey
 {
     public class BashTest : Test
     {
-        private DirectoryInfo testDirectory;
-
-        public BashTest(DirectoryInfo testDirectory)
+        public BashTest(DirectoryInfo directory, TestDescriptor test) : base(directory, test)
         {
-            this.testDirectory = testDirectory;
         }
 
         protected override async Task<TestResult> InternalRunAsync()
         {
-            FileInfo testFile = new FileInfo(testDirectory + "/test.sh");
+            FileInfo testFile = new FileInfo(Directory + "/test.sh");
             if (!testFile.Exists)
             {
                 throw new Exception();
@@ -24,7 +21,7 @@ namespace Turkey
             ProcessStartInfo startInfo = new ProcessStartInfo()
             {
                 FileName = testFile.FullName,
-                WorkingDirectory = testDirectory.FullName,
+                WorkingDirectory = Directory.FullName,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
             };

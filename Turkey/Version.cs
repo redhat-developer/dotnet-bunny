@@ -36,6 +36,7 @@ namespace Turkey
             this.parts = parts;
             this.Major = int.Parse(parts[0], CultureInfo.InvariantCulture);
             this.Minor = int.Parse(parts[1], CultureInfo.InvariantCulture);
+            this.MajorMinor = this.Major + "." + this.Minor;
         }
 
         public override string ToString()

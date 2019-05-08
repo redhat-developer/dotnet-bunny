@@ -10,3 +10,6 @@ publish:
 clean:
 	rm -rf Turkey/bin Turkey/obj
 	rm -rf Turkey.Tests/bin Turkey.Tests/obj
+
+fix-line-endings:
+	find -iname '*.cs' -exec dos2unix {} \;
