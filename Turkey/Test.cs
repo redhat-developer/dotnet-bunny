@@ -34,7 +34,7 @@ namespace Turkey
 
     public abstract class Test
     {
-        public DirectoryInfo Directory;
+        public DirectoryInfo Directory { get; set; }
         public TestDescriptor Descriptor { get; set; }
         public bool Skip { get; set; }
 
