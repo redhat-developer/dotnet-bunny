@@ -301,7 +301,13 @@ def getProdConFeedUrl(branchName):
     "Find the prodcon url for the given release branch of github.com/dotnet/source-build."
     url = "https://raw.githubusercontent.com/dotnet/source-build/" + branchName + "/ProdConFeed.txt"
     response = urlopen(url)
-    return response.read().strip().decode('utf-8')
+    url = response.read().strip().decode('utf-8')
+    try:
+        urlopen(url)
+        return url
+    except:
+        print('ProdCon URL %s is invalid, ignoring' % (url,))
+        return None
 
 def generateNuGetConfigContentsForFeeds(urls):
     sources = '\n    '.join('<add key="%s" value="%s" />' % (index, url) for index, url in enumerate(urls))
@@ -452,13 +458,16 @@ frameworkExpression = re.compile(r"<TargetFramework>netcoreapp\d\.\d</TargetFram
 
 latestDotNetRuntimeVersion = getDotNetRuntimeVersion()
 if latestDotNetRuntimeVersion and not nugetPackagesAreLive(latestDotNetRuntimeVersion):
-    branchName = "release/" + majorMinorString
-    prodConUrl = getProdConFeedUrl(branchName)
-    message = "Packages for runtime version %s are not live on nuget.org, using prodcon nuget repository %s\n" \
-        % (latestDotNetRuntimeVersion, prodConUrl)
-    nuGetUrls.append(prodConUrl)
+    message = "Packages for runtime version %s are not live on nuget.org" % (latestDotNetRuntimeVersion, )
     print(message)
     logfile.writelines(message)
+    branchName = "release/" + majorMinorString
+    prodConUrl = getProdConFeedUrl(branchName)
+    if prodConUrl:
+        message = "Using prodcon nuget repository %s\n" % (prodConUrl, )
+        print(message)
+        nuGetUrls.append(prodConUrl)
+        logfile.writelines(message)
 
 if nuGetUrls:
     nuGetConfig = generateNuGetConfigContentsForFeeds(nuGetUrls)
