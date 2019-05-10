@@ -5,7 +5,7 @@ namespace Turkey
 {
     public class XUnitTest : Test
     {
-        public XUnitTest(DirectoryInfo directory, TestDescriptor descriptor) : base(directory, descriptor)
+        public XUnitTest(DirectoryInfo directory, TestDescriptor descriptor, bool enabled) : base(directory, descriptor, enabled)
         {
         }
 

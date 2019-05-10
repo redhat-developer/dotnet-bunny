@@ -11,11 +11,11 @@ namespace Turkey
 {
     class Program
     {
-        public static Option verboseOption = new Option(
+        public static readonly Option verboseOption = new Option(
             new string[] { "--verbose", "-v" },
             "Show verbose output", new Argument<bool>());
 
-        public static Option logDirectoryOption = new Option(
+        public static readonly Option logDirectoryOption = new Option(
             new string[] { "--log-directory", "-l" },
             "Set directory for writing log files", new Argument<string>());
 
@@ -35,14 +35,17 @@ namespace Turkey
 
             DotNet dotnet = new DotNet();
 
-            SystemUnderTest system = new SystemUnderTest()
-            {
-                RuntimeVersion = dotnet.LatestRuntimeVersion,
-                SdkVersion = dotnet.LatestSdkVersion,
-                CurrentPlatformIds = new PlatformId().CurrentIds,
-            };
+            SystemUnderTest system = new SystemUnderTest(
+                runtimeVersion: dotnet.LatestRuntimeVersion,
+                sdkVersion: dotnet.LatestSdkVersion,
+                platformIds: new PlatformId().CurrentIds
+            );
 
-            TestRunner runner = new TestRunner(system, currentDirectory, verbose, logDirectory);
+            TestRunner runner = new TestRunner(
+                system: system,
+                root: currentDirectory,
+                verboseOutput: verbose,
+                logDirectory: logDirectory);
 
             var results = await runner.ScanAndRunAsync();
 

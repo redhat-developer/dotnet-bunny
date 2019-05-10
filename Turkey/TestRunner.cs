@@ -16,9 +16,16 @@ namespace Turkey
 
     public class SystemUnderTest
     {
-        public Version RuntimeVersion { get; set; }
-        public Version SdkVersion { get; set; }
-        public List<string> CurrentPlatformIds { get; set; }
+        public Version RuntimeVersion { get; }
+        public Version SdkVersion { get; }
+        public List<string> CurrentPlatformIds { get; }
+
+        public SystemUnderTest(Version runtimeVersion, Version sdkVersion, List<string> platformIds)
+        {
+            RuntimeVersion = runtimeVersion;
+            SdkVersion = sdkVersion;
+            CurrentPlatformIds = platformIds;
+        }
     }
 
     public class TestRunner

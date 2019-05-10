@@ -28,8 +28,8 @@ namespace Turkey
                 Console.WriteLine($"Warning: mismatch in directory name vs test name in {descriptor.Name} test");
             }
 
-            var test = new BashTest(directory, descriptor);
-            test.Skip = !ShouldRunTest(system, descriptor);
+            var enabled = ShouldRunTest(system, descriptor);
+            var test = new BashTest(directory, descriptor, enabled);
             return test;
         }
 

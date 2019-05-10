@@ -27,33 +27,39 @@ namespace Turkey
 
     public class TestResult
     {
-        public TestStatus Status { get; set; }
-        public string StandardOutput { get; set; }
-        public string StandardError { get; set; }
+        public TestStatus Status { get; }
+        public string StandardOutput { get; }
+        public string StandardError { get; }
+
+        public TestResult(TestStatus status, string standardOutput, string standardError)
+        {
+            Status = status;
+            StandardOutput = standardOutput;
+            StandardError = standardError;
+        }
     }
 
     public abstract class Test
     {
-        public DirectoryInfo Directory { get; set; }
-        public TestDescriptor Descriptor { get; set; }
-        public bool Skip { get; set; }
+        public DirectoryInfo Directory { get; }
+        public TestDescriptor Descriptor { get; }
+        public bool Skip { get; }
 
-        public Test(DirectoryInfo testDirectory, TestDescriptor descriptor)
+        public Test(DirectoryInfo testDirectory, TestDescriptor descriptor, bool enabled)
         {
             this.Directory = testDirectory;
             this.Descriptor = descriptor;
+            this.Skip = !enabled;
         }
 
         public async Task<TestResult> RunAsync()
         {
             if (Skip)
             {
-                return new TestResult()
-                {
-                    Status = TestStatus.Skipped,
-                    StandardOutput = null,
-                    StandardError = null,
-                };
+                return new TestResult(
+                    status: TestStatus.Skipped,
+                    standardOutput: null,
+                    standardError: null);
             }
 
             return await InternalRunAsync();

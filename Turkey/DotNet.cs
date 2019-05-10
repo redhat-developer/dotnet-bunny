@@ -26,8 +26,8 @@ namespace Turkey
                     .Split("\n", StringSplitOptions.RemoveEmptyEntries)
                     .Select(line => line.Split(" ")[1])
                     .Select(versionString => Version.Parse(versionString))
+                    .OrderBy(x => x)
                     .ToList();
-                list.Sort();
                 return list;
             }
         }
@@ -58,8 +58,8 @@ namespace Turkey
                     .Split("\n", StringSplitOptions.RemoveEmptyEntries)
                     .Select(line => line.Split(" ")[0])
                     .Select(versionString => Version.Parse(versionString))
+                    .OrderBy(x => x)
                     .ToList();
-                list.Sort();
                 return list;
             }
         }

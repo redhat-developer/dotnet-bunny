@@ -7,7 +7,7 @@ namespace Turkey
 {
     public class BashTest : Test
     {
-        public BashTest(DirectoryInfo directory, TestDescriptor test) : base(directory, test)
+        public BashTest(DirectoryInfo directory, TestDescriptor test, bool enabled) : base(directory, test, enabled)
         {
         }
 
@@ -28,12 +28,11 @@ namespace Turkey
             Process p = Process.Start(startInfo);
             p.WaitForExit();
             // TODO timeout + kill
-            return new TestResult()
-            {
-                Status = (p.ExitCode == 0) ? TestStatus.Passed: TestStatus.Failed,
-                StandardOutput = p.StandardOutput.ReadToEnd(),
-                StandardError = p.StandardError.ReadToEnd(),
-            };
+            var status = (p.ExitCode == 0) ? TestStatus.Passed: TestStatus.Failed;
+            return new TestResult(
+                status: status,
+                standardOutput: p.StandardOutput.ReadToEnd(),
+                standardError: p.StandardError.ReadToEnd());
         }
     }
 }

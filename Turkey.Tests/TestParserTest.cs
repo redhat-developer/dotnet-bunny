@@ -1,11 +1,5 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 using Xunit;
 
@@ -18,7 +12,7 @@ namespace Turkey.Tests
         public void DisabledTestShouldBeSkipped()
         {
             TestParser parser = new TestParser();
-            SystemUnderTest system = new SystemUnderTest();
+            SystemUnderTest system = new SystemUnderTest(null, null, null);
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = false,
@@ -44,11 +38,11 @@ namespace Turkey.Tests
         public void TestShouldBeRunForSameOrHigherVersions(string version, bool expectedToRun)
         {
             TestParser parser = new TestParser();
-            SystemUnderTest system = new SystemUnderTest()
-            {
-                RuntimeVersion = Version.Parse(version),
-                CurrentPlatformIds = new List<string>(),
-            };
+            SystemUnderTest system = new SystemUnderTest(
+                runtimeVersion: Version.Parse(version),
+                sdkVersion: null,
+                platformIds: new List<string>());
+
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = true,
@@ -77,11 +71,10 @@ namespace Turkey.Tests
         public void VersionSpecificTestShouldBeRunForSameMajorMinorVersion(string version, bool expectedToRun)
         {
             TestParser parser = new TestParser();
-            SystemUnderTest system = new SystemUnderTest()
-            {
-                RuntimeVersion = Version.Parse(version),
-                CurrentPlatformIds = new List<string>(),
-            };
+            SystemUnderTest system = new SystemUnderTest(
+                runtimeVersion: Version.Parse(version),
+                sdkVersion: null,
+                platformIds: new List<string>());
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = true,
@@ -113,11 +106,10 @@ namespace Turkey.Tests
         public void VersionSpecificTestWithWildcardShouldBeRunForSameMajorVersion(string version, bool expectedToRun)
         {
             TestParser parser = new TestParser();
-            SystemUnderTest system = new SystemUnderTest()
-            {
-                RuntimeVersion = Version.Parse(version),
-                CurrentPlatformIds = new List<string>(),
-            };
+            SystemUnderTest system = new SystemUnderTest(
+                runtimeVersion: Version.Parse(version),
+                sdkVersion: null,
+                platformIds: new List<string>());
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = true,
@@ -141,11 +133,10 @@ namespace Turkey.Tests
         public void TestShouldNotRunOnBlacklistedPlatforms(string[] currentPlatforms, string[] platformBlacklist, bool expectedToRun)
         {
             TestParser parser = new TestParser();
-            SystemUnderTest system = new SystemUnderTest()
-            {
-                RuntimeVersion = Version.Parse("2.1"),
-                CurrentPlatformIds = currentPlatforms.ToList(),
-            };
+            SystemUnderTest system = new SystemUnderTest(
+                runtimeVersion: Version.Parse("2.1"),
+                sdkVersion: null,
+                platformIds: currentPlatforms.ToList());
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = true,
