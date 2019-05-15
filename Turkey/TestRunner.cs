@@ -44,7 +44,7 @@ namespace Turkey
             this.logDirectory = logDirectory;
         }
 
-        public async Task<TestResults> ScanAndRunAsync()
+        public async Task<TestResults> ScanAndRunAsync(Action<string, TestStatus> afterEachTest)
         {
             TestResults results = new TestResults();
 
@@ -92,29 +92,9 @@ namespace Turkey
                     }
                 }
 
-                if (Console.IsOutputRedirected || Console.IsErrorRedirected)
-                {
-                    string resultOutput = null;
-                    switch (result.Status)
-                    {
-                        case TestStatus.Passed: resultOutput = "PASS"; break;
-                        case TestStatus.Failed: resultOutput = "FAIL"; break;
-                        case TestStatus.Skipped: resultOutput = "SKIP"; break;
-                    }
-                    Console.WriteLine($"[{resultOutput}] {test.Descriptor.Name}");
-                }
-                else
-                {
-                    string resultOutput = null;
-                    switch (result.Status)
-                    {
-                        case TestStatus.Passed: resultOutput = "\u001b[32mPASS\u001b[0m"; break;
-                        case TestStatus.Failed: resultOutput = "\u001b[31mFAIL\u001b[0m"; break;
-                        case TestStatus.Skipped: resultOutput = "SKIP"; break;
-                    }
-                    Console.WriteLine($"[{resultOutput}] {test.Descriptor.Name}");
-                }
+                afterEachTest.Invoke(test.Descriptor.Name, result.Status);
             }
+
             return results;
         }
     }

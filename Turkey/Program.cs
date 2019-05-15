@@ -57,7 +57,32 @@ namespace Turkey
                 verboseOutput: verbose,
                 logDirectory: logDirectory);
 
-            var results = await runner.ScanAndRunAsync();
+            void PrintTestResult(string name, TestStatus result)
+            {
+                string resultOutput = null;
+                if (Console.IsOutputRedirected || Console.IsErrorRedirected)
+                {
+                    switch (result)
+                    {
+                        case TestStatus.Passed: resultOutput = "PASS"; break;
+                        case TestStatus.Failed: resultOutput = "FAIL"; break;
+                        case TestStatus.Skipped: resultOutput = "SKIP"; break;
+                    }
+                    Console.WriteLine($"[{resultOutput}] {name}");
+                }
+                else
+                {
+                    switch (result)
+                    {
+                        case TestStatus.Passed: resultOutput = "\u001b[32mPASS\u001b[0m"; break;
+                        case TestStatus.Failed: resultOutput = "\u001b[31mFAIL\u001b[0m"; break;
+                        case TestStatus.Skipped: resultOutput = "SKIP"; break;
+                    }
+                    Console.WriteLine($"[{resultOutput}] {name}");
+                }
+            }
+
+            var results = await runner.ScanAndRunAsync(PrintTestResult);
 
             Console.WriteLine($"Total: {results.Total} Passed: {results.Passed} Failed: {results.Failed}");
 
