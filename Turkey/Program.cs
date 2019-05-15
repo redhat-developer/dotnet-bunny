@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 using System.CommandLine;
@@ -34,6 +34,16 @@ namespace Turkey
             }
 
             DotNet dotnet = new DotNet();
+
+            using (HttpClient client = new HttpClient())
+            {
+                NuGet nuget = new NuGet(client);
+                bool live = await nuget.IsPackageLiveAsync("Microsoft.NetCore.App", dotnet.LatestRuntimeVersion);
+                if (!live)
+                {
+                    Console.WriteLine("WARNING: Not possible to test non-live packages");
+                }
+            }
 
             SystemUnderTest system = new SystemUnderTest(
                 runtimeVersion: dotnet.LatestRuntimeVersion,

@@ -1,32 +1,40 @@
+using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Linq;
 using System.Threading.Tasks;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Turkey
 {
     public class NuGet
     {
-        public static async Task<bool> IsPackageLiveAsync(string name, string version)
+        private readonly HttpClient _client;
+
+        public NuGet(HttpClient client)
         {
-            return false;
+            _client = client;
         }
 
-        public static async Task<string> GetProdConFeedAsync(string branchName)
+        public async Task<bool> IsPackageLiveAsync(string name, Version version)
         {
+            var url = $"https://api-v2v3search-0.nuget.org/autocomplete?id={name}&prerelease=true";
+            var result = await _client.GetStringAsync(url);
+            JObject deserialized = (JObject) JsonConvert.DeserializeObject(result);
+            JArray versions = (JArray) deserialized.GetValue("data");
+            var found = versions.Children<JToken>()
+                .Where(v => v.Value<string>() == version.ToString())
+                .Any();
+            return found;
+        }
+
+        public async Task<string> GenerateNuGetConfig(List<string> urls)
+        {
+            // TODO
             return "";
         }
 
-        public static async Task<string> GenerateNuGetConfig(List<string> urls)
-        {
-            return "";
-        }
-
-        public static async Task CleanLocalCache()
-        {
-            foreach (string dir in new string[] { "~/.nuget/packages", "~/.local/share/NuGet/"})
-            {
-
-            }
-            return;
-        }
     }
 }

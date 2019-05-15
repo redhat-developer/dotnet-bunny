@@ -8,7 +8,6 @@ using Newtonsoft.Json.Linq;
 
 namespace Turkey
 {
-
     public class TestDescriptor
     {
         public string Name { get; set; }
@@ -42,12 +41,14 @@ namespace Turkey
     public abstract class Test
     {
         public DirectoryInfo Directory { get; }
+        public SystemUnderTest SystemUnderTest { get; }
         public TestDescriptor Descriptor { get; }
         public bool Skip { get; }
 
-        public Test(DirectoryInfo testDirectory, TestDescriptor descriptor, bool enabled)
+        public Test(DirectoryInfo testDirectory, SystemUnderTest system, TestDescriptor descriptor, bool enabled)
         {
             this.Directory = testDirectory;
+            this.SystemUnderTest = system;
             this.Descriptor = descriptor;
             this.Skip = !enabled;
         }

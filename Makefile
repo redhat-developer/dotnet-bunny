@@ -1,8 +1,11 @@
 
 all: publish
 
-check: publish
-	dotnet test Turkey.Tests
+check:
+	dotnet test -c Release Turkey.Tests
+
+run-samples:
+	cd Samples && ../turkey || true
 
 publish:
 	dotnet publish -c Release

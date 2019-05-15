@@ -71,5 +71,20 @@ namespace Turkey
                 return SdkVersions.Last();
             }
         }
+
+        public static Process Command(DirectoryInfo workingDirectory, params string[] commands)
+        {
+            var arguments = string.Join(" ", commands);
+            ProcessStartInfo startInfo = new ProcessStartInfo()
+            {
+                FileName = "dotnet",
+                Arguments = arguments,
+                WorkingDirectory = workingDirectory.FullName,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+
+            return Process.Start(startInfo);
+        }
     }
 }

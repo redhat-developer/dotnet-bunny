@@ -14,4 +14,8 @@
     <PackageReference Include="Text.Analyzers" Version="2.6" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="**\*.json" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

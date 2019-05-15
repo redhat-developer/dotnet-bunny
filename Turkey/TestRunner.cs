@@ -47,14 +47,23 @@ namespace Turkey
         {
             TestResults results = new TestResults();
 
-            var options = new EnumerationOptions();
-            options.RecurseSubdirectories = true;
+            var options = new EnumerationOptions
+            {
+                RecurseSubdirectories = true
+            };
 
             TestParser parser = new TestParser();
 
             foreach (var file in root.EnumerateFiles("test.json", options))
             {
-                Test test = await parser.ParseAsync(system, file);
+                var parsedTest = await parser.TryParseAsync(system, file);
+                if (!parsedTest.Success)
+                {
+                    Console.WriteLine($"WARNING: Unable to parse {file}");
+                    continue;
+                }
+
+                var test = parsedTest.Test;
                 var result = await test.RunAsync();
                 results.Total++;
                 switch (result.Status)
