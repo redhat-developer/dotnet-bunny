@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace Turkey
 {
@@ -49,12 +50,17 @@ namespace Turkey
 
             var options = new EnumerationOptions
             {
-                RecurseSubdirectories = true
+                RecurseSubdirectories = true,
             };
 
             TestParser parser = new TestParser();
 
-            foreach (var file in root.EnumerateFiles("test.json", options))
+            // sort tests before running to keep test order the same everywhere
+            var sortedFiles = root
+                .EnumerateFiles("test.json", options)
+                .OrderBy(f => f.DirectoryName);
+
+            foreach (var file in sortedFiles)
             {
                 var parsedTest = await parser.TryParseAsync(system, file);
                 if (!parsedTest.Success)
