@@ -35,13 +35,15 @@ namespace Turkey
         private DirectoryInfo root;
         private bool verboseOutput;
         private DirectoryInfo logDirectory;
+        private Cleaner cleaner;
 
-        public TestRunner(SystemUnderTest system, DirectoryInfo root, bool verboseOutput, DirectoryInfo logDirectory)
+        public TestRunner(SystemUnderTest system, DirectoryInfo root, bool verboseOutput, DirectoryInfo logDirectory, Cleaner cleaner)
         {
             this.root = root;
             this.system = system;
             this.verboseOutput = verboseOutput;
             this.logDirectory = logDirectory;
+            this.cleaner = cleaner;
         }
 
         public async Task<TestResults> ScanAndRunAsync(Action<string, TestStatus> afterEachTest)
@@ -62,6 +64,8 @@ namespace Turkey
 
             foreach (var file in sortedFiles)
             {
+                cleaner.CleanLocalDotNetCache();
+
                 var parsedTest = await parser.TryParseAsync(system, file);
                 if (!parsedTest.Success)
                 {

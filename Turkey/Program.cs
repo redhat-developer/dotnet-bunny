@@ -33,6 +33,8 @@ namespace Turkey
                 logDirectory = new DirectoryInfo(logDir);
             }
 
+            Cleaner cleaner = new Cleaner();
+
             DotNet dotnet = new DotNet();
 
             using (HttpClient client = new HttpClient())
@@ -52,6 +54,7 @@ namespace Turkey
             );
 
             TestRunner runner = new TestRunner(
+                cleaner: cleaner,
                 system: system,
                 root: currentDirectory,
                 verboseOutput: verbose,
