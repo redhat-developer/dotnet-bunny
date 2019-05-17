@@ -22,6 +22,7 @@ namespace Turkey
             ProcessStartInfo startInfo = new ProcessStartInfo()
             {
                 FileName = testFile.FullName,
+                Arguments = SystemUnderTest.RuntimeVersion.ToString(),
                 WorkingDirectory = Directory.FullName,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
