@@ -28,7 +28,32 @@ namespace Turkey
             yield return "/tmp/VBCSCompiler";
         }
 
-        public async Task CleanLocalDotNetCache()
+        /// These path must all be directories
+        public static IEnumerable<string> LocalProjectCruft()
+        {
+            yield return "bin";
+            yield return "out";
+            yield return "project.lock.json";
+        }
+
+        public async Task CleanProjectLocalDotNetCruft()
+        {
+
+            foreach(var name in LocalProjectCruft())
+            {
+                // Console.WriteLine("Deleting: " + name);
+                if (Directory.Exists(name))
+                {
+                    Directory.Delete(name, true);
+                }
+                else if (File.Exists(name))
+                {
+                    File.Delete(name);
+                }
+            }
+        }
+
+        public async Task CleanLocalDotNetCacheAsync()
         {
             foreach (var path in CruftDirectoryGlobs())
             {

@@ -64,7 +64,7 @@ namespace Turkey
 
             foreach (var file in sortedFiles)
             {
-                cleaner.CleanLocalDotNetCache();
+                await cleaner.CleanLocalDotNetCacheAsync();
 
                 var parsedTest = await parser.TryParseAsync(system, file);
                 if (!parsedTest.Success)
@@ -74,6 +74,12 @@ namespace Turkey
                 }
 
                 var test = parsedTest.Test;
+
+                if (test.Descriptor.Cleanup)
+                {
+                    await cleaner.CleanProjectLocalDotNetCruft();
+                }
+
                 var result = await test.RunAsync();
                 results.Total++;
                 switch (result.Status)
