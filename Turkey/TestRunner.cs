@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
 
@@ -34,15 +33,15 @@ namespace Turkey
         private SystemUnderTest system;
         private DirectoryInfo root;
         private bool verboseOutput;
-        private DirectoryInfo logDirectory;
+        private LogWriter logWriter;
         private Cleaner cleaner;
 
-        public TestRunner(SystemUnderTest system, DirectoryInfo root, bool verboseOutput, DirectoryInfo logDirectory, Cleaner cleaner)
+        public TestRunner(SystemUnderTest system, DirectoryInfo root, bool verboseOutput, LogWriter logWriter, Cleaner cleaner)
         {
             this.root = root;
             this.system = system;
             this.verboseOutput = verboseOutput;
-            this.logDirectory = logDirectory;
+            this.logWriter = logWriter;
             this.cleaner = cleaner;
         }
 
@@ -91,15 +90,7 @@ namespace Turkey
 
                 if (result.Status == TestStatus.Failed)
                 {
-                    var logFileName = $"logfile-{test.Descriptor.Name}.log";
-                    var path = Path.Combine(logDirectory.FullName, logFileName);
-                    using (StreamWriter sw = new StreamWriter(path, false, Encoding.UTF8))
-                    {
-                        await sw.WriteAsync("# Standard Output:" + Environment.NewLine);
-                        await sw.WriteAsync(result.StandardOutput);
-                        await sw.WriteAsync("# Standard Error:" + Environment.NewLine);
-                        await sw.WriteAsync(result.StandardError);
-                    }
+                    await logWriter.WriteAsync(test.Descriptor.Name, result.StandardOutput, result.StandardError);
                 }
 
                 afterEachTest.Invoke(test.Descriptor.Name, result.Status);

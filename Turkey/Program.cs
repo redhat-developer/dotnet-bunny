@@ -33,6 +33,8 @@ namespace Turkey
                 logDirectory = new DirectoryInfo(logDir);
             }
 
+            LogWriter logWriter = new LogWriter(logDirectory);
+
             Cleaner cleaner = new Cleaner();
 
             DotNet dotnet = new DotNet();
@@ -58,7 +60,7 @@ namespace Turkey
                 system: system,
                 root: currentDirectory,
                 verboseOutput: verbose,
-                logDirectory: logDirectory);
+                logWriter: logWriter);
 
             void PrintTestResult(string name, TestStatus result)
             {
