@@ -28,6 +28,15 @@ namespace Turkey
         }
     }
 
+    public class TestOutput
+    {
+        public virtual void AtStartup() {}
+        public virtual void BeforeTest() {}
+        public virtual void AfterParsingTest(string name, bool enabled) {}
+        public virtual void AfterRunningTest(string name, TestStatus result) {}
+        public virtual void AfterRunningAllTests(TestResults results) {}
+    }
+
     public class TestRunner
     {
         private SystemUnderTest system;
@@ -45,8 +54,10 @@ namespace Turkey
             this.cleaner = cleaner;
         }
 
-        public async Task<TestResults> ScanAndRunAsync(Action<string, TestStatus> afterEachTest)
+        public async Task<TestResults> ScanAndRunAsync(TestOutput output)
         {
+            output.AtStartup();
+
             TestResults results = new TestResults();
 
             var options = new EnumerationOptions
@@ -74,6 +85,8 @@ namespace Turkey
 
                 var test = parsedTest.Test;
 
+                output.AfterParsingTest(test.Descriptor.Name, !test.Skip);
+
                 if (test.Descriptor.Cleanup)
                 {
                     await cleaner.CleanProjectLocalDotNetCruft();
@@ -93,8 +106,10 @@ namespace Turkey
                     await logWriter.WriteAsync(test.Descriptor.Name, result.StandardOutput, result.StandardError);
                 }
 
-                afterEachTest.Invoke(test.Descriptor.Name, result.Status);
+                output.AfterRunningTest(test.Descriptor.Name, result.Status);
             }
+
+            output.AfterRunningAllTests(results);
 
             return results;
         }
