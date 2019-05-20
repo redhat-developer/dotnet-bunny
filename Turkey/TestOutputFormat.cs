@@ -48,7 +48,7 @@ namespace Turkey
             public override void AfterParsingTest(string name, bool enabled)
             {
                 var nameText = string.Format("{0,-60}", name);
-                Console.WriteLine(nameText);
+                Console.Write(nameText);
             }
 
             public override void AfterRunningTest(string name, TestStatus result)
