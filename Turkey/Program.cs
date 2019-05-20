@@ -74,7 +74,7 @@ namespace Turkey
             }
             var results = await runner.ScanAndRunAsync(outputFormat);
 
-            int exitCode = (results.Total == results.Passed) ? 0 : 1;
+            int exitCode = (results.Failed == 0) ? 0 : 1;
             return exitCode;
         }
 
