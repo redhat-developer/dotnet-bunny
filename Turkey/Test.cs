@@ -42,13 +42,15 @@ namespace Turkey
     {
         public DirectoryInfo Directory { get; }
         public SystemUnderTest SystemUnderTest { get; }
+        public string NuGetConfig { get; }
         public TestDescriptor Descriptor { get; }
         public bool Skip { get; }
 
-        public Test(DirectoryInfo testDirectory, SystemUnderTest system, TestDescriptor descriptor, bool enabled)
+        public Test(DirectoryInfo testDirectory, SystemUnderTest system, string nuGetConfig, TestDescriptor descriptor, bool enabled)
         {
             this.Directory = testDirectory;
             this.SystemUnderTest = system;
+            this.NuGetConfig = nuGetConfig;
             this.Descriptor = descriptor;
             this.Skip = !enabled;
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -43,13 +44,16 @@ namespace Turkey
 
             DotNet dotnet = new DotNet();
 
+            string nuGetConfig = null;
             using (HttpClient client = new HttpClient())
             {
                 NuGet nuget = new NuGet(client);
                 bool live = await nuget.IsPackageLiveAsync("Microsoft.NetCore.App", dotnet.LatestRuntimeVersion);
                 if (!live)
                 {
-                    Console.WriteLine("WARNING: Not possible to test non-live packages");
+                    var feed = await new SourceBuild(client).GetProdConFeedAsync(dotnet.LatestRuntimeVersion);
+                    nuGetConfig = nuget.GenerateNuGetConfig(new List<string>{feed});
+                    Console.WriteLine($"Packages are not live on nuget.org; using {feed} as additional package source");
                 }
             }
 
@@ -64,7 +68,8 @@ namespace Turkey
                 system: system,
                 root: currentDirectory,
                 verboseOutput: verbose,
-                logWriter: logWriter);
+                logWriter: logWriter,
+                nuGetConfig: nuGetConfig);
 
 
             TestOutput outputFormat = new TestOutputFormats.NewOutput();

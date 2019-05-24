@@ -23,8 +23,8 @@ namespace Turkey
 
     public class XUnitTest : Test
     {
-        public XUnitTest(DirectoryInfo directory, SystemUnderTest system, TestDescriptor descriptor, bool enabled)
-            : base(directory, system, descriptor, enabled)
+        public XUnitTest(DirectoryInfo directory, SystemUnderTest system, string nuGetConfig, TestDescriptor descriptor, bool enabled)
+            : base(directory, system, nuGetConfig, descriptor, enabled)
         {
         }
 

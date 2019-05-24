@@ -44,14 +44,16 @@ namespace Turkey
         private bool verboseOutput;
         private LogWriter logWriter;
         private Cleaner cleaner;
+        private string nuGetConfig;
 
-        public TestRunner(SystemUnderTest system, DirectoryInfo root, bool verboseOutput, LogWriter logWriter, Cleaner cleaner)
+        public TestRunner(SystemUnderTest system, DirectoryInfo root, bool verboseOutput, LogWriter logWriter, Cleaner cleaner, string nuGetConfig)
         {
             this.root = root;
             this.system = system;
             this.verboseOutput = verboseOutput;
             this.logWriter = logWriter;
             this.cleaner = cleaner;
+            this.nuGetConfig = nuGetConfig;
         }
 
         public async Task<TestResults> ScanAndRunAsync(TestOutput output)
@@ -76,7 +78,7 @@ namespace Turkey
             {
                 await cleaner.CleanLocalDotNetCacheAsync();
 
-                var parsedTest = await parser.TryParseAsync(system, file);
+                var parsedTest = await parser.TryParseAsync(system, nuGetConfig, file);
                 if (!parsedTest.Success)
                 {
                     Console.WriteLine($"WARNING: Unable to parse {file}");

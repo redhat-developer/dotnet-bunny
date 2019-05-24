@@ -9,13 +9,13 @@ namespace Turkey
 {
     public class TestParser
     {
-        public Task<(bool Success, Test Test)> TryParseAsync(SystemUnderTest system, FileInfo testConfiguration)
+        public Task<(bool Success, Test Test)> TryParseAsync(SystemUnderTest system, string nuGetConfig, FileInfo testConfiguration)
         {
             var dir = testConfiguration.Directory;
-            return TryParseAsync(system, dir, File.ReadAllText(testConfiguration.FullName));
+            return TryParseAsync(system, nuGetConfig, dir, File.ReadAllText(testConfiguration.FullName));
         }
 
-        public async Task<(bool Success, Test Test)> TryParseAsync(SystemUnderTest system, DirectoryInfo directory, string testConfiguration)
+        public async Task<(bool Success, Test Test)> TryParseAsync(SystemUnderTest system, string nuGetConfig, DirectoryInfo directory, string testConfiguration)
         {
             // TODO: async
             var fileName = Path.Combine(directory.FullName, "test.json");
@@ -31,10 +31,10 @@ namespace Turkey
             switch (descriptor.Type)
             {
                 case "xunit":
-                    test = new XUnitTest(directory, system, descriptor, enabled);
+                    test = new XUnitTest(directory, system, nuGetConfig, descriptor, enabled);
                     return (true, test);
                 case "bash":
-                    test = new BashTest(directory, system, descriptor, enabled);
+                    test = new BashTest(directory, system, nuGetConfig, descriptor, enabled);
                     return (true, test);
                 default:
                     return (false, null);

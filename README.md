@@ -16,3 +16,4 @@ as [dotnet-bunny](https://github.com/redhat-developer/dotnet-bunny/).
 
 - Do not modify original source files for xunit tests
 - Implement timeouts for tests
+- Use provided NuGet config when running each bash/xunit test

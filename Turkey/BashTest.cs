@@ -7,8 +7,8 @@ namespace Turkey
 {
     public class BashTest : Test
     {
-        public BashTest(DirectoryInfo directory, SystemUnderTest system, TestDescriptor test, bool enabled)
-            : base(directory, system, test, enabled)
+        public BashTest(DirectoryInfo directory, SystemUnderTest system, string nuGetConfig, TestDescriptor test, bool enabled)
+            : base(directory, system, nuGetConfig, test, enabled)
         {
         }
 
