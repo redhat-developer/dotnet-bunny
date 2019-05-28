@@ -91,7 +91,7 @@ namespace Turkey
 
                 if (test.Descriptor.Cleanup)
                 {
-                    await cleaner.CleanProjectLocalDotNetCruft();
+                    await cleaner.CleanProjectLocalDotNetCruftAsync();
                 }
 
                 var result = await test.RunAsync();

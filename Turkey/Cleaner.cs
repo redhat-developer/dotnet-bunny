@@ -36,7 +36,7 @@ namespace Turkey
             yield return "project.lock.json";
         }
 
-        public async Task CleanProjectLocalDotNetCruft()
+        public async Task CleanProjectLocalDotNetCruftAsync()
         {
 
             foreach(var name in LocalProjectCruft())
@@ -60,7 +60,14 @@ namespace Turkey
                 foreach(var expanded in ExpandPath(path))
                 {
                     // Console.WriteLine("Deleting: " + expanded);
-                    Directory.Delete(expanded, true);
+                    try
+                    {
+                        Directory.Delete(expanded, true);
+                    }
+                    catch (IOException)
+                    {
+                        Console.WriteLine($"WARNING: unable to delete {expanded}");
+                    }
                 }
             }
             return;
