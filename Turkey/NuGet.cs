@@ -37,11 +37,9 @@ namespace Turkey
 
         public string GenerateNuGetConfig(List<string> urls)
         {
-            Console.WriteLine(string.Join(",", urls));
             var sourceParts = new List<string>(urls.Count);
             for (int i = 0; i < urls.Count; i++)
             {
-                Console.WriteLine(i);
                 sourceParts.Add($"<add key=\"{i}\" value=\"{urls[i]}\" />");
             }
             var sources = string.Join(Environment.NewLine + "    ", sourceParts);
