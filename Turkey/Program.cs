@@ -25,21 +25,30 @@ namespace Turkey
             new string[] { "--log-directory", "-l" },
             "Set directory for writing log files", new Argument<string>());
 
-        public static async Task<int> Run(bool verbose, bool compatible, string logDir)
+        public static readonly Option timeoutOption = new Option(
+            new string[] { "--timeout", "-t" },
+            "Set the timeout duration for test in seconds", new Argument<int>());
+
+        public static async Task<int> Run(bool verbose, bool compatible, string logDirectory, int timeout)
         {
+            if (timeout == 0)
+            {
+                timeout = 60;
+            }
+
             var currentDirectory = new DirectoryInfo(Directory.GetCurrentDirectory());
 
-            DirectoryInfo logDirectory;
-            if (string.IsNullOrEmpty(logDir))
+            DirectoryInfo logDir;
+            if (string.IsNullOrEmpty(logDirectory))
             {
-                logDirectory = currentDirectory;
+                logDir = currentDirectory;
             }
             else
             {
-                logDirectory = new DirectoryInfo(logDir);
+                logDir = new DirectoryInfo(logDirectory);
             }
 
-            LogWriter logWriter = new LogWriter(logDirectory);
+            LogWriter logWriter = new LogWriter(logDir);
 
             Cleaner cleaner = new Cleaner();
 
@@ -78,7 +87,8 @@ namespace Turkey
             {
                 outputFormat = new TestOutputFormats.DotNetBunnyOutput();
             }
-            var timeoutPerTest = new TimeSpan(hours: 0, minutes: 1, seconds: 0);
+
+            var timeoutPerTest = new TimeSpan(hours: 0, minutes: 0, seconds: timeout);
             var cancellationTokenSource = new Func<CancellationTokenSource>(() => new CancellationTokenSource(timeoutPerTest));
             var results = await runner.ScanAndRunAsync(outputFormat, cancellationTokenSource);
 
@@ -88,7 +98,7 @@ namespace Turkey
 
         static async Task<int> Main(string[] args)
         {
-            Func<bool, bool, string, Task<int>> action = Run;
+            Func<bool, bool, string, int, Task<int>> action = Run;
             var rootCommand = new RootCommand(description: "A test runner for running standalone bash-based or xunit tests",
                                               handler: CommandHandler.Create(action));
 
@@ -96,6 +106,7 @@ namespace Turkey
                 .AddOption(compatibleOption)
                 .AddOption(verboseOption)
                 .AddOption(logDirectoryOption)
+                .AddOption(timeoutOption)
                 .UseVersionOption()
                 .UseHelp()
                 .UseParseErrorReporting()
