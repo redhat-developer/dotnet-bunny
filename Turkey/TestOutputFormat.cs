@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 
 namespace Turkey
 {
@@ -6,12 +7,19 @@ namespace Turkey
     {
         public class DotNetBunnyOutput : TestOutput
         {
-            public override void AtStartup()
+            private readonly LogWriter _logWriter;
+
+            public DotNetBunnyOutput(LogWriter writer)
+            {
+                this._logWriter = writer;
+            }
+
+            public async override Task AtStartupAsync()
             {
                 Console.WriteLine("\n\n(\\_/)\n(^_^)\n@(\")(\")\n\n".Replace("\n", Environment.NewLine));
             }
 
-            public override void AfterParsingTest(string name, bool enabled)
+            public async override Task AfterParsingTestAsync(string name, bool enabled)
             {
                 if (enabled)
                 {
@@ -19,10 +27,10 @@ namespace Turkey
                 }
             }
 
-            public override void AfterRunningTest(string name, TestStatus result)
+            public async override Task AfterRunningTestAsync(string name, TestResult result)
             {
                 string resultText;
-                switch (result)
+                switch (result.Status)
                 {
                     case TestStatus.Passed:
                         resultText = "PASS";
@@ -35,9 +43,15 @@ namespace Turkey
                     default:
                         break;
                 }
+
+                if (result.Status == TestStatus.Failed)
+                {
+                    await _logWriter.WriteAsync(name, result.StandardOutput, result.StandardError);
+                }
+
             }
 
-            public override void AfterRunningAllTests(TestResults results)
+            public async override Task AfterRunningAllTestsAsync(TestResults results)
             {
                 Console.WriteLine($"Total: {results.Total} Passed: {results.Passed} Failed: {results.Failed}");
             }
@@ -45,18 +59,26 @@ namespace Turkey
 
         public class NewOutput : TestOutput
         {
-            public override void AfterParsingTest(string name, bool enabled)
+
+            private readonly LogWriter _logWriter;
+
+            public NewOutput(LogWriter writer)
+            {
+                this._logWriter = writer;
+            }
+
+            public async override Task AfterParsingTestAsync(string name, bool enabled)
             {
                 var nameText = string.Format("{0,-60}", name);
                 Console.Write(nameText);
             }
 
-            public override void AfterRunningTest(string name, TestStatus result)
+            public async override Task AfterRunningTestAsync(string name, TestResult result)
             {
                 string resultOutput = null;
                 if (Console.IsOutputRedirected || Console.IsErrorRedirected)
                 {
-                    switch (result)
+                    switch (result.Status)
                     {
                         case TestStatus.Passed: resultOutput = "PASS"; break;
                         case TestStatus.Failed: resultOutput = "FAIL"; break;
@@ -66,7 +88,7 @@ namespace Turkey
                 }
                 else
                 {
-                    switch (result)
+                    switch (result.Status)
                     {
                         case TestStatus.Passed: resultOutput = "\u001b[32mPASS\u001b[0m"; break;
                         case TestStatus.Failed: resultOutput = "\u001b[31mFAIL\u001b[0m"; break;
@@ -74,9 +96,14 @@ namespace Turkey
                     }
                     Console.WriteLine($"[{resultOutput}]");
                 }
+
+                if (result.Status == TestStatus.Failed)
+                {
+                    await _logWriter.WriteAsync(name, result.StandardOutput, result.StandardError);
+                }
             }
 
-            public override void AfterRunningAllTests(TestResults results)
+            public async override Task AfterRunningAllTestsAsync(TestResults results)
             {
                 Console.WriteLine($"Total: {results.Total} Passed: {results.Passed} Failed: {results.Failed}");
             }

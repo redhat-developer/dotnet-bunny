@@ -31,11 +31,11 @@ namespace Turkey
 
     public class TestOutput
     {
-        public virtual void AtStartup() {}
-        public virtual void BeforeTest() {}
-        public virtual void AfterParsingTest(string name, bool enabled) {}
-        public virtual void AfterRunningTest(string name, TestStatus result) {}
-        public virtual void AfterRunningAllTests(TestResults results) {}
+        public async virtual Task AtStartupAsync() {}
+        public async virtual Task BeforeTestAsync() {}
+        public async virtual Task AfterParsingTestAsync(string name, bool enabled) {}
+        public async virtual Task AfterRunningTestAsync(string name, TestResult result) {}
+        public async virtual Task AfterRunningAllTestsAsync(TestResults results) {}
     }
 
     public class TestRunner
@@ -43,23 +43,21 @@ namespace Turkey
         private SystemUnderTest system;
         private DirectoryInfo root;
         private bool verboseOutput;
-        private LogWriter logWriter;
         private Cleaner cleaner;
         private string nuGetConfig;
 
-        public TestRunner(SystemUnderTest system, DirectoryInfo root, bool verboseOutput, LogWriter logWriter, Cleaner cleaner, string nuGetConfig)
+        public TestRunner(SystemUnderTest system, DirectoryInfo root, bool verboseOutput, Cleaner cleaner, string nuGetConfig)
         {
             this.root = root;
             this.system = system;
             this.verboseOutput = verboseOutput;
-            this.logWriter = logWriter;
             this.cleaner = cleaner;
             this.nuGetConfig = nuGetConfig;
         }
 
         public async Task<TestResults> ScanAndRunAsync(TestOutput output, Func<CancellationTokenSource> GetNewCancellationToken)
         {
-            output.AtStartup();
+            await output.AtStartupAsync();
 
             TestResults results = new TestResults();
 
@@ -90,7 +88,7 @@ namespace Turkey
 
                 var test = parsedTest.Test;
 
-                output.AfterParsingTest(test.Descriptor.Name, !test.Skip);
+                await output.AfterParsingTestAsync(test.Descriptor.Name, !test.Skip);
 
                 if (test.Descriptor.Cleanup)
                 {
@@ -106,15 +104,10 @@ namespace Turkey
                     case TestStatus.Skipped: results.Skipped++; break;
                 }
 
-                if (result.Status == TestStatus.Failed)
-                {
-                    await logWriter.WriteAsync(test.Descriptor.Name, result.StandardOutput, result.StandardError);
-                }
-
-                output.AfterRunningTest(test.Descriptor.Name, result.Status);
+                await output.AfterRunningTestAsync(test.Descriptor.Name, result);
             }
 
-            output.AfterRunningAllTests(results);
+            await output.AfterRunningAllTestsAsync(results);
 
             return results;
         }

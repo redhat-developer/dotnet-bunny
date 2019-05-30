@@ -78,14 +78,13 @@ namespace Turkey
                 system: system,
                 root: currentDirectory,
                 verboseOutput: verbose,
-                logWriter: logWriter,
                 nuGetConfig: nuGetConfig);
 
 
-            TestOutput outputFormat = new TestOutputFormats.NewOutput();
+            TestOutput outputFormat = new TestOutputFormats.NewOutput(logWriter);
             if (compatible)
             {
-                outputFormat = new TestOutputFormats.DotNetBunnyOutput();
+                outputFormat = new TestOutputFormats.DotNetBunnyOutput(logWriter);
             }
 
             var timeoutPerTest = new TimeSpan(hours: 0, minutes: 0, seconds: timeout);
