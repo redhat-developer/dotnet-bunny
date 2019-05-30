@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
-
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Turkey
 {
@@ -55,7 +52,7 @@ namespace Turkey
             this.Skip = !enabled;
         }
 
-        public async Task<TestResult> RunAsync()
+        public async Task<TestResult> RunAsync(CancellationToken cancelltionToken)
         {
             if (Skip)
             {
@@ -65,9 +62,9 @@ namespace Turkey
                     standardError: null);
             }
 
-            return await InternalRunAsync();
+            return await InternalRunAsync(cancelltionToken);
         }
 
-        protected abstract Task<TestResult> InternalRunAsync();
+        protected abstract Task<TestResult> InternalRunAsync(CancellationToken cancellationToken);
     }
 }

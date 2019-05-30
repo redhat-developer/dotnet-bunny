@@ -1,9 +1,9 @@
 using System;
 using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Text.RegularExpressions;
-using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Turkey
 {
@@ -28,7 +28,7 @@ namespace Turkey
         {
         }
 
-        protected override async Task<TestResult> InternalRunAsync()
+        protected override async Task<TestResult> InternalRunAsync(CancellationToken cancellationToken)
         {
             var result = await UpdateProjectFiles();
             var stdout = result.StandardOutput;
@@ -38,17 +38,26 @@ namespace Turkey
                 return new TestResult(TestStatus.Failed, stdout, stderr);
             }
 
-            result = await RestoreProject();
-            stdout = stdout + Environment.NewLine + result.StandardOutput;
-            stderr = stderr + Environment.NewLine + result.StandardError;
-            if (!result.Success)
+            try
             {
-                return new TestResult(TestStatus.Failed, stdout, stderr);
-            }
+                result = await BuildProjectAsync(cancellationToken);
+                stdout = stdout + Environment.NewLine + result.StandardOutput;
+                stderr = stderr + Environment.NewLine + result.StandardError;
+                if (!result.Success)
+                {
+                    return new TestResult(TestStatus.Failed, stdout, stderr);
+                }
 
-            result = await TestProject();
-            stdout = stdout + Environment.NewLine + result.StandardOutput;
-            stderr = stderr + Environment.NewLine + result.StandardError;
+                result = await TestProjectAsync(cancellationToken);
+                stdout += Environment.NewLine + result.StandardOutput;
+                stderr += Environment.NewLine + result.StandardError;
+            }
+            catch (OperationCanceledException)
+            {
+                stdout += Environment.NewLine + "[[TIMEOUT]]" + Environment.NewLine;
+                stderr += Environment.NewLine + "[[TIMEOUT]]" + Environment.NewLine;
+                result.Success = false;
+            }
 
             return new TestResult(result.Success ? TestStatus.Passed : TestStatus.Failed,
                                   stdout,
@@ -118,24 +127,19 @@ namespace Turkey
             return output;
         }
 
-        private async Task<PartialResult> RestoreProject()
+        private async Task<PartialResult> BuildProjectAsync(CancellationToken token)
         {
-            var process = DotNet.Command(Directory, "restore");
-            var stdout = await process.StandardOutput.ReadToEndAsync();
-            var stderr = await process.StandardError.ReadToEndAsync();
-            // TODO async!
-            process.WaitForExit();
-            return new PartialResult(process.ExitCode == 0, stdout, stderr);
+            return ProcessResultToPartialResult(await DotNet.BuildAsync(Directory, token));
         }
 
-        private async Task<PartialResult> TestProject()
+        private async Task<PartialResult> TestProjectAsync(CancellationToken token)
         {
-            var process = DotNet.Command(Directory, "test");
-            var stdout = await process.StandardOutput.ReadToEndAsync();
-            var stderr = await process.StandardError.ReadToEndAsync();
-            // TODO async!
-            process.WaitForExit();
-            return new PartialResult(process.ExitCode == 0, stdout, stderr);
+            return ProcessResultToPartialResult(await DotNet.TestAsync(Directory, token));
+        }
+
+        private static PartialResult ProcessResultToPartialResult(DotNet.ProcessResult result)
+        {
+            return new PartialResult(result.ExitCode == 0, result.StandardOutput, result.StandardError);
         }
     }
 }

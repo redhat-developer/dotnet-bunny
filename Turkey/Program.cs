@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
+using System.Threading;
 
 namespace Turkey
 {
@@ -77,7 +78,9 @@ namespace Turkey
             {
                 outputFormat = new TestOutputFormats.DotNetBunnyOutput();
             }
-            var results = await runner.ScanAndRunAsync(outputFormat);
+            var timeoutPerTest = new TimeSpan(hours: 0, minutes: 1, seconds: 0);
+            var cancellationTokenSource = new Func<CancellationTokenSource>(() => new CancellationTokenSource(timeoutPerTest));
+            var results = await runner.ScanAndRunAsync(outputFormat, cancellationTokenSource);
 
             int exitCode = (results.Failed == 0) ? 0 : 1;
             return exitCode;

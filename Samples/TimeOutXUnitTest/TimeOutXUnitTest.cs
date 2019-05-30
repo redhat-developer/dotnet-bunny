@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Xunit;
 
 namespace Samples
@@ -8,7 +9,8 @@ namespace Samples
         [Fact]
         public void Test1()
         {
-            Assert.True(true);
+            TimeSpan duration = new TimeSpan(hours: 1, minutes: 0, seconds: 0);
+            Thread.Sleep(duration);
         }
     }
 }

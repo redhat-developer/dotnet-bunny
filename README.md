@@ -12,8 +12,13 @@ as [dotnet-bunny](https://github.com/redhat-developer/dotnet-bunny/).
   directory where all the test files are present. This may not be the
   original directory of the tests, but a copy instead.
 
+# Project Coventions
+
+- All warnings are displayed as:
+
+    WARNING: foo bar baz
+
 # TODO
 
 - Do not modify original source files for xunit tests
-- Implement timeouts for tests
 - Use provided NuGet config when running each bash/xunit test

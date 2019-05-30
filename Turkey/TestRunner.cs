@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Turkey
 {
@@ -56,7 +57,7 @@ namespace Turkey
             this.nuGetConfig = nuGetConfig;
         }
 
-        public async Task<TestResults> ScanAndRunAsync(TestOutput output)
+        public async Task<TestResults> ScanAndRunAsync(TestOutput output, Func<CancellationTokenSource> GetNewCancellationToken)
         {
             output.AtStartup();
 
@@ -76,6 +77,8 @@ namespace Turkey
 
             foreach (var file in sortedFiles)
             {
+                var cancellationTokenSource = GetNewCancellationToken();
+                var cancellationToken = cancellationTokenSource.Token;
                 await cleaner.CleanLocalDotNetCacheAsync();
 
                 var parsedTest = await parser.TryParseAsync(system, nuGetConfig, file);
@@ -94,7 +97,7 @@ namespace Turkey
                     await cleaner.CleanProjectLocalDotNetCruftAsync();
                 }
 
-                var result = await test.RunAsync();
+                var result = await test.RunAsync(cancellationToken);
                 results.Total++;
                 switch (result.Status)
                 {

@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Turkey
 {
@@ -72,7 +74,44 @@ namespace Turkey
             }
         }
 
-        public static Process Command(DirectoryInfo workingDirectory, params string[] commands)
+        public struct ProcessResult
+        {
+            public int ExitCode { get; }
+            public string StandardOutput { get; }
+            public string StandardError { get; }
+
+            public ProcessResult(int exitCode, string stdout, string stderr)
+            {
+                ExitCode = exitCode;
+                StandardOutput = stdout;
+                StandardError = stderr;
+            }
+        }
+
+        public static async Task<ProcessResult> BuildAsync(DirectoryInfo workingDirectory, CancellationToken token)
+        {
+            var arguments = new string[]
+            {
+                "build",
+                "-p:UseRazorBuildServer=false",
+                "-p:UseSharedCompilation=false",
+                "-m:1",
+            };
+            var result = await RunDotNetCommandAsync(workingDirectory, arguments, token);
+            return result;
+        }
+
+        public static async Task<ProcessResult> RunAsync(DirectoryInfo workingDirectory, CancellationToken token)
+        {
+            return await RunDotNetCommandAsync(workingDirectory, new string[] { "run", "--no-restore", "--no-build"} , token);
+        }
+
+        public static async Task<ProcessResult> TestAsync(DirectoryInfo workingDirectory, CancellationToken token)
+        {
+            return await RunDotNetCommandAsync(workingDirectory, new string[] { "test", "--no-restore", "--no-build"} , token);
+        }
+
+        private static async Task<ProcessResult> RunDotNetCommandAsync(DirectoryInfo workingDirectory, string[] commands, CancellationToken token)
         {
             var arguments = string.Join(" ", commands);
             ProcessStartInfo startInfo = new ProcessStartInfo()
@@ -84,7 +123,13 @@ namespace Turkey
                 RedirectStandardError = true,
             };
 
-            return Process.Start(startInfo);
+            var process = Process.Start(startInfo);
+            StringWriter standardOutputWriter = new StringWriter();
+            StringWriter standardErrorWriter = new StringWriter();
+            await process.WaitForExitAsync(token, standardOutputWriter, standardErrorWriter);
+            int exitCode = exitCode = process.ExitCode;
+
+            return new ProcessResult(exitCode, standardOutputWriter.ToString(), standardErrorWriter.ToString());
         }
     }
 }

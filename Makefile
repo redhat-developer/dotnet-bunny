@@ -5,7 +5,9 @@ check:
 	dotnet test -c Release Turkey.Tests
 
 run-samples:
+	rm -rf ~/.nuget.orig && mv ~/.nuget ~/.nuget.orig && mkdir -p ~/.nuget
 	cd Samples && ../turkey || true
+	rm -rf ~/.nuget && mv ~/.nuget.orig ~/.nuget
 
 publish:
 	dotnet publish -c Release
@@ -17,6 +19,7 @@ clean:
 
 fix-line-endings:
 	find -iname '*.cs' -exec dos2unix {} \;
+	find -iname '*.csproj' -exec dos2unix {} \;
 
 list-todos:
 	grep -r -E 'TODO|FIXME' *

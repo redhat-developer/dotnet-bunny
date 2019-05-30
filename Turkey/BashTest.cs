@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Turkey
@@ -12,7 +13,7 @@ namespace Turkey
         {
         }
 
-        protected override async Task<TestResult> InternalRunAsync()
+        protected override async Task<TestResult> InternalRunAsync(CancellationToken cancellationToken)
         {
             FileInfo testFile = new FileInfo(Path.Combine(Directory.FullName, "test.sh"));
             if (!testFile.Exists)
@@ -28,13 +29,24 @@ namespace Turkey
                 RedirectStandardError = true,
             };
             Process p = Process.Start(startInfo);
-            p.WaitForExit();
-            // TODO timeout + kill
-            var status = (p.ExitCode == 0) ? TestStatus.Passed: TestStatus.Failed;
+            var standardOutputWriter = new StringWriter();
+            var standardErrorWriter = new StringWriter();
+            var status = TestStatus.Failed;
+            try
+            {
+                await p.WaitForExitAsync(cancellationToken, standardOutputWriter, standardErrorWriter);
+                status = (p.ExitCode == 0) ? TestStatus.Passed: TestStatus.Failed;
+            }
+            catch (OperationCanceledException)
+            {
+                standardOutputWriter.WriteLine("[[TIMEOUT]]");
+                standardErrorWriter.WriteLine("[[TIMEOUT]]");
+            }
+
             return new TestResult(
                 status: status,
-                standardOutput: p.StandardOutput.ReadToEnd(),
-                standardError: p.StandardError.ReadToEnd());
+                standardOutput: standardOutputWriter.ToString(),
+                standardError: standardErrorWriter.ToString());
         }
     }
 }

@@ -1,0 +1,11 @@
+{
+  "name": "TimeOutXUnitTest",
+  "enabled": true,
+  "version": "1.0",
+  "versionSpecific": false,
+  "type": "xunit",
+  "cleanup": true,
+  "platformBlacklist":[
+  ]
+}
+
