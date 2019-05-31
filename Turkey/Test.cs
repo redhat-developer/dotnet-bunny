@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -62,7 +63,24 @@ namespace Turkey
                     standardError: null);
             }
 
-            return await InternalRunAsync(cancelltionToken);
+            var path = Path.Combine(Directory.FullName, "nuget.config");
+            if (!string.IsNullOrEmpty(NuGetConfig))
+            {
+                if (File.Exists(path))
+                {
+                    Console.WriteLine($"WARNING: overwriting {path}");
+                }
+                await File.WriteAllTextAsync(path, NuGetConfig);
+            }
+
+            var result = await InternalRunAsync(cancelltionToken);
+
+            if (!string.IsNullOrEmpty(NuGetConfig))
+            {
+                File.Delete(path);
+            }
+
+            return result;
         }
 
         protected abstract Task<TestResult> InternalRunAsync(CancellationToken cancellationToken);

@@ -13,6 +13,10 @@ invoking the `turkey` shell script. For example:
 
     cd Samples
     ../turkey
+    BashTestSpecificToDotNet2x                                  [PASS]
+    BashTestSpecificToDotNet50                                  [SKIP]
+    DisabledBashTest                                            [SKIP]
+    ...
 
 See `turkey --help` for more information on how to select and run
 tests and how to show the test output.
@@ -125,4 +129,3 @@ Some notes for writing tests:
 # TODO
 
 - Do not modify original source files for xunit tests
-- Use provided NuGet config when running each bash/xunit test

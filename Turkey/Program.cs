@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace Turkey
 {
-    class Program
+    public class Program
     {
         public static readonly Option verboseOption = new Option(
             new string[] { "--verbose", "-v" },
@@ -54,17 +54,10 @@ namespace Turkey
 
             DotNet dotnet = new DotNet();
 
-            string nuGetConfig = null;
-            using (HttpClient client = new HttpClient())
+            TestOutput outputFormat = new TestOutputFormats.NewOutput(logWriter);
+            if (compatible)
             {
-                NuGet nuget = new NuGet(client);
-                bool live = await nuget.IsPackageLiveAsync("Microsoft.NetCore.App", dotnet.LatestRuntimeVersion);
-                if (!live)
-                {
-                    var feed = await new SourceBuild(client).GetProdConFeedAsync(dotnet.LatestRuntimeVersion);
-                    nuGetConfig = nuget.GenerateNuGetConfig(new List<string>{feed});
-                    Console.WriteLine($"Packages are not live on nuget.org; using {feed} as additional package source");
-                }
+                outputFormat = new TestOutputFormats.DotNetBunnyOutput(logWriter);
             }
 
             SystemUnderTest system = new SystemUnderTest(
@@ -73,6 +66,9 @@ namespace Turkey
                 platformIds: new PlatformId().CurrentIds
             );
 
+            Version packageVersion = dotnet.LatestRuntimeVersion;
+            string nuGetConfig = await GetNuGetConfigIfNeeded(packageVersion);
+
             TestRunner runner = new TestRunner(
                 cleaner: cleaner,
                 system: system,
@@ -80,19 +76,39 @@ namespace Turkey
                 verboseOutput: verbose,
                 nuGetConfig: nuGetConfig);
 
-
-            TestOutput outputFormat = new TestOutputFormats.NewOutput(logWriter);
-            if (compatible)
-            {
-                outputFormat = new TestOutputFormats.DotNetBunnyOutput(logWriter);
-            }
-
             var timeoutPerTest = new TimeSpan(hours: 0, minutes: 0, seconds: timeout);
             var cancellationTokenSource = new Func<CancellationTokenSource>(() => new CancellationTokenSource(timeoutPerTest));
             var results = await runner.ScanAndRunAsync(outputFormat, cancellationTokenSource);
 
             int exitCode = (results.Failed == 0) ? 0 : 1;
             return exitCode;
+        }
+
+        public static Task<string> GetNuGetConfigIfNeeded(Version netCoreAppVersion)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                var nuget = new NuGet(client);
+                var sourceBuild = new SourceBuild(client);
+                return GetNuGetConfigIfNeeded(nuget, sourceBuild, netCoreAppVersion);
+            }
+        }
+
+        public static async Task<string> GetNuGetConfigIfNeeded(NuGet nuget, SourceBuild sourceBuild, Version netCoreAppVersion)
+        {
+            string nuGetConfig = null;
+            bool live = await nuget.IsPackageLiveAsync("Microsoft.NetCore.App", netCoreAppVersion);
+            if (!live)
+            {
+                var feed = await sourceBuild.GetProdConFeedAsync(netCoreAppVersion);
+                if (!string.IsNullOrEmpty(feed))
+                {
+                    nuGetConfig = nuget.GenerateNuGetConfig(new List<string>{feed});
+                    Console.WriteLine($"Packages are not live on nuget.org; using {feed} as additional package source");
+                }
+            }
+
+            return nuGetConfig;
         }
 
         static async Task<int> Main(string[] args)
