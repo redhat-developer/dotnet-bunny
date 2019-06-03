@@ -33,7 +33,7 @@ namespace Turkey
         {
             if (timeout == 0)
             {
-                timeout = 60;
+                timeout = 120;
             }
 
             var currentDirectory = new DirectoryInfo(Directory.GetCurrentDirectory());
@@ -67,7 +67,7 @@ namespace Turkey
             );
 
             Version packageVersion = dotnet.LatestRuntimeVersion;
-            string nuGetConfig = await GetNuGetConfigIfNeeded(packageVersion);
+            string nuGetConfig = await GetNuGetConfigIfNeededAsync(packageVersion);
 
             TestRunner runner = new TestRunner(
                 cleaner: cleaner,
@@ -84,17 +84,17 @@ namespace Turkey
             return exitCode;
         }
 
-        public static Task<string> GetNuGetConfigIfNeeded(Version netCoreAppVersion)
+        public static async Task<string> GetNuGetConfigIfNeededAsync(Version netCoreAppVersion)
         {
             using (HttpClient client = new HttpClient())
             {
                 var nuget = new NuGet(client);
                 var sourceBuild = new SourceBuild(client);
-                return GetNuGetConfigIfNeeded(nuget, sourceBuild, netCoreAppVersion);
+                return await GetNuGetConfigIfNeededAsync(nuget, sourceBuild, netCoreAppVersion);
             }
         }
 
-        public static async Task<string> GetNuGetConfigIfNeeded(NuGet nuget, SourceBuild sourceBuild, Version netCoreAppVersion)
+        public static async Task<string> GetNuGetConfigIfNeededAsync(NuGet nuget, SourceBuild sourceBuild, Version netCoreAppVersion)
         {
             string nuGetConfig = null;
             bool live = await nuget.IsPackageLiveAsync("Microsoft.NetCore.App", netCoreAppVersion);

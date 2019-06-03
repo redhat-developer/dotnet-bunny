@@ -15,11 +15,19 @@ namespace Turkey
 
         protected override async Task<TestResult> InternalRunAsync(CancellationToken cancellationToken)
         {
+            var standardOutputWriter = new StringWriter();
+            var standardErrorWriter = new StringWriter();
+
             FileInfo testFile = new FileInfo(Path.Combine(Directory.FullName, "test.sh"));
             if (!testFile.Exists)
             {
-                throw new Exception();
+                standardErrorWriter.WriteLine($"Unable to find 'test.sh' in {Directory.FullName}");
+                return new TestResult(
+                    status: TestStatus.Failed,
+                    standardOutput: standardOutputWriter.ToString(),
+                    standardError: standardErrorWriter.ToString());
             }
+
             ProcessStartInfo startInfo = new ProcessStartInfo()
             {
                 FileName = testFile.FullName,
@@ -28,14 +36,14 @@ namespace Turkey
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
             };
+            standardOutputWriter.WriteLine($"Executing {startInfo.FileName} with arguments {startInfo.Arguments} in working directory {startInfo.WorkingDirectory}");
             Process p = Process.Start(startInfo);
-            var standardOutputWriter = new StringWriter();
-            var standardErrorWriter = new StringWriter();
             var status = TestStatus.Failed;
             try
             {
                 await p.WaitForExitAsync(cancellationToken, standardOutputWriter, standardErrorWriter);
                 status = (p.ExitCode == 0) ? TestStatus.Passed: TestStatus.Failed;
+                standardOutputWriter.WriteLine($"Exit Code: {p.ExitCode}");
             }
             catch (OperationCanceledException)
             {
