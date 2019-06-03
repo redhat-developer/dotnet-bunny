@@ -97,10 +97,7 @@ namespace Turkey
                     Console.WriteLine($"[{resultOutput}]");
                 }
 
-                if (result.Status == TestStatus.Failed)
-                {
-                    await _logWriter.WriteAsync(name, result.StandardOutput, result.StandardError);
-                }
+                await _logWriter.WriteAsync(name, result.StandardOutput, result.StandardError);
             }
 
             public async override Task AfterRunningAllTestsAsync(TestResults results)
