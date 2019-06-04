@@ -31,9 +31,14 @@ namespace Turkey
 
         public static async Task<int> Run(bool verbose, bool compatible, string logDirectory, int timeout)
         {
+            TimeSpan timeoutForEachTest;
             if (timeout == 0)
             {
-                timeout = 120;
+                timeoutForEachTest = new TimeSpan(hours: 0, minutes: 5, seconds: 0);
+            }
+            else
+            {
+                timeoutForEachTest = new TimeSpan(hours: 0, minutes: 0, seconds: timeout);
             }
 
             var currentDirectory = new DirectoryInfo(Directory.GetCurrentDirectory());
@@ -76,8 +81,7 @@ namespace Turkey
                 verboseOutput: verbose,
                 nuGetConfig: nuGetConfig);
 
-            var timeoutPerTest = new TimeSpan(hours: 0, minutes: 0, seconds: timeout);
-            var cancellationTokenSource = new Func<CancellationTokenSource>(() => new CancellationTokenSource(timeoutPerTest));
+            var cancellationTokenSource = new Func<CancellationTokenSource>(() => new CancellationTokenSource(timeoutForEachTest));
             var results = await runner.ScanAndRunAsync(outputFormat, cancellationTokenSource);
 
             int exitCode = (results.Failed == 0) ? 0 : 1;
