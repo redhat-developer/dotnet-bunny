@@ -26,6 +26,7 @@ namespace Turkey
                 string output = p.StandardOutput.ReadToEnd();
                 var list = output
                     .Split("\n", StringSplitOptions.RemoveEmptyEntries)
+                    .Where(line => line.StartsWith("Microsoft.NETCore.App"))
                     .Select(line => line.Split(" ")[1])
                     .Select(versionString => Version.Parse(versionString))
                     .OrderBy(x => x)

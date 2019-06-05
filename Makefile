@@ -6,7 +6,7 @@ check:
 
 run-samples:
 	rm -rf ~/.nuget.orig && mv ~/.nuget ~/.nuget.orig && mkdir -p ~/.nuget
-	cd Samples && ../turkey || true
+	cd Samples && test -f ../turkey && (bash ../turkey || true)
 	rm -rf ~/.nuget && mv ~/.nuget.orig ~/.nuget
 
 publish:

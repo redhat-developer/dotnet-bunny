@@ -1,0 +1,9 @@
+language: csharp
+mono: none
+dotnet: 2.1
+script:
+  - dotnet --list-runtimes
+  - dotnet --list-sdks
+  - make all
+  - make check
+  - make run-samples
