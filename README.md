@@ -23,6 +23,9 @@ tests and how to show the test output.
 
 To get output compatible with `dotnet-bunny`, use `turkey --compatible`
 
+A real example of a test-suite to use with this framework is:
+https://github.com/redhat-developer/dotnet-regular-tests/
+
 # Writing Tests
 
 Two different types of tests are supported: xunit-style tests that are
