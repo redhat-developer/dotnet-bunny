@@ -29,7 +29,7 @@ namespace Turkey
             new string[] { "--timeout", "-t" },
             "Set the timeout duration for test in seconds", new Argument<int>());
 
-        public static async Task<int> Run(bool verbose, bool compatible, string logDirectory, int timeout)
+        public static async Task<int> Run(string testRoot, bool verbose, bool compatible, string logDirectory, int timeout)
         {
             TimeSpan timeoutForEachTest;
             if (timeout == 0)
@@ -52,6 +52,22 @@ namespace Turkey
             {
                 logDir = new DirectoryInfo(logDirectory);
             }
+
+            DirectoryInfo testRootDirectory;
+            if (string.IsNullOrEmpty(testRoot))
+            {
+                testRootDirectory = currentDirectory;
+            }
+            else
+            {
+                testRootDirectory = new DirectoryInfo(testRoot);
+                if (!testRootDirectory.Exists)
+                {
+                    Console.WriteLine($"error: Test root '{testRootDirectory.FullName}' does not exist");
+                    return 1;
+                }
+            }
+            Console.WriteLine($"Testing everything under {testRootDirectory.FullName}");
 
             LogWriter logWriter = new LogWriter(logDir);
 
@@ -77,7 +93,7 @@ namespace Turkey
             TestRunner runner = new TestRunner(
                 cleaner: cleaner,
                 system: system,
-                root: currentDirectory,
+                root: testRootDirectory,
                 verboseOutput: verbose,
                 nuGetConfig: nuGetConfig);
 
@@ -117,9 +133,16 @@ namespace Turkey
 
         static async Task<int> Main(string[] args)
         {
-            Func<bool, bool, string, int, Task<int>> action = Run;
+            Func<string, bool, bool, string, int, Task<int>> action = Run;
             var rootCommand = new RootCommand(description: "A test runner for running standalone bash-based or xunit tests",
                                               handler: CommandHandler.Create(action));
+
+            var testRootArgument = new Argument<string>();
+            testRootArgument.Name = "testRoot";
+            testRootArgument.Description = "Root directory for searching for tests";
+            testRootArgument.Arity = ArgumentArity.ZeroOrOne;
+
+            rootCommand.AddArgument(testRootArgument);
 
             var parser = new CommandLineBuilder(rootCommand)
                 .AddOption(compatibleOption)

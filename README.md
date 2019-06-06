@@ -11,8 +11,7 @@ as [dotnet-bunny](https://github.com/redhat-developer/dotnet-bunny/).
 If you have a directory containing tests, you can run them via
 invoking the `turkey` shell script. For example:
 
-    cd Samples
-    ../turkey
+    ./turkey Samples
     BashTestSpecificToDotNet2x                                  [PASS]
     BashTestSpecificToDotNet50                                  [SKIP]
     DisabledBashTest                                            [SKIP]
