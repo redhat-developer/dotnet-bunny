@@ -10,7 +10,8 @@ run-samples:
 	rm -rf ~/.nuget && mv ~/.nuget.orig ~/.nuget
 
 publish:
-	dotnet publish -c Release
+	git rev-parse --short HEAD > GIT_COMMIT_ID
+	dotnet publish -c Release -p:VersionSuffix=$$(cat GIT_COMMIT_ID)
 
 clean:
 	rm -rf Turkey/bin Turkey/obj
