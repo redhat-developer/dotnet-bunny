@@ -21,6 +21,7 @@ clean:
 fix-line-endings:
 	find -iname '*.cs' -exec dos2unix {} \;
 	find -iname '*.csproj' -exec dos2unix {} \;
+	find -iname 'nuget.config' -exec dos2unix {} \;
 
 list-todos:
 	grep -r -E 'TODO|FIXME' *
