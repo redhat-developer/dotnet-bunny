@@ -357,6 +357,74 @@ def unquoteShellValue(value):
     return value
 
 
+def printUsefulSystemInformation():
+    processFree = subprocess.Popen(["free", "-h"], cwd=rootPath, stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT, universal_newlines=True)
+    print("Current resources:\n" + processFree.communicate()[0])
+
+    # Lets use a filtered list to reduce noise and also to keep any
+    # confidential data out.
+    environmentVariables = [
+        'ASPNETCORE_ENVIRONMENT',
+        'CFLAGS',
+        'COLORTERM',
+        'CPATH',
+        'CXXFLAGS',
+        'DEBUG',
+        'DISPLAY',
+        'DOTNET_CLI_TELEMETRY_OPTOUT',
+        'DOTNET_MULTILEVEL_LOOKUP',
+        'DOTNET_PACKAGES',
+        'DOTNET_ROLL_FORWARD_ON_NO_CANDIDATE_FX',
+        'DOTNET_ROOT',
+        'DOTNET_RUNTIME_ID',
+        'DOTNET_SERVICING',
+        'DOTNET_SKIP_FIRST_TIME_EXPERIENCE',
+        'DOTNET_SYSTEM_BUFFERS_ARRAYPOOL_TRIMSHARED',
+        'DOTNET_SYSTEM_GLOBALIZATION_INVARIANT',
+        'DOTNET_SYSTEM_RUNTIME_CACHING_TRACING',
+        'EDITOR',
+        'HOME',
+        'HOSTNAME',
+        'INFOPATH',
+        'LANG',
+        'LD_LIBRARY_PATH',
+        'LIBRARY_PATH',
+        'MANPATH',
+        'MODULEPATH',
+        'OSTYPE',
+        'PAGER',
+        'PATH',
+        'PKG_CONFIG_PATH',
+        'POSIXLY_CORRECT',
+        'PWD',
+        'PYTHONDEBUG',
+        'PYTHONHOME',
+        'PYTHONINSPECT',
+        'PYTHONOPTIMIZE',
+        'PYTHONPATH',
+        'PYTHONSTARTUP',
+        'PYTHONUNBUFFERED',
+        'PYTHONUTF8',
+        'PYTHONVERBOSE',
+        'PYTHONWARNINGS',
+        'SHELL',
+        'TERM',
+        'TZ',
+        'USER',
+        'XDG_CURRENT_DESKTOP',
+        'XDG_DATA_DIRS',
+        'XDG_RUNTIME_DIR',
+        'XDG_SESSION_DESKTOP',
+        'XDG_SESSION_TYPE',
+    ]
+
+    print("Current (filtered) environment:")
+    for envVar in environmentVariables:
+        if envVar in os.environ:
+            print(envVar + "=" + os.environ[envVar])
+
+
 print("\n(\\_/)\n(^_^)\n@(\")(\")\n")
 
 helpString = "Usage: run-tests.py x.y [options]\n" \
@@ -477,9 +545,7 @@ if nuGetUrls:
 
 rootPath = os.path.abspath(os.path.curdir)
 
-processFree = subprocess.Popen(["free", "-h"], cwd=rootPath, stdout=subprocess.PIPE,
-                           stderr=subprocess.STDOUT, universal_newlines=True)
-print("Current resources:\n" + processFree.communicate()[0])
+printUsefulSystemInformation();
 
 dotnetBunny = DotnetBunny(rootPath)
 
