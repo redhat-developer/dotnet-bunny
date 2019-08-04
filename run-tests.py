@@ -67,16 +67,6 @@ class DotnetBunny(object):
             if debug:
                 print("Test.setFrameworkVersion() DONE")
 
-        def copyProjectJson(self, path):
-            if debug:
-                print("Test.copyProjectJson( " + str(path) + " )")
-
-            shutil.copy(os.path.join(rootPath, "project" + str(major) + str(minor) + (
-                "xunit" if self.type == "xunit" else "") + ".json"), os.path.join(path, "project.json"))
-
-            if debug:
-                print("Test.copyProjectJson() DONE")
-
         # Returns the exit code of the test.
         def run(self, path):
             if debug:
@@ -86,10 +76,7 @@ class DotnetBunny(object):
             logfile.writelines(self.name + ": Running test...\n")
             logfile.flush()
 
-            if version >= 20000:
-                self.setFrameworkVersion(os.path.join(path, self.name + ".csproj"))
-            else:
-                self.copyProjectJson(path)
+            self.setFrameworkVersion(os.path.join(path, self.name + ".csproj"))
 
             testlogFilename = logfilename + "-" + self.name + ".log"
             testlog = ""
@@ -161,7 +148,6 @@ class DotnetBunny(object):
                 logfile.writelines(self.name + ": Cleanup...\n")
                 shutil.rmtree(os.path.join(path, "bin"), True)
                 shutil.rmtree(os.path.join(path, "obj"), True)
-                shutil.rmtree(os.path.join(path, "project.lock.json"), True)
 
             if debug:
                 print("Test.cleanup() DONE")
