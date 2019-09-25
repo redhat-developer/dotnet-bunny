@@ -499,7 +499,9 @@ logfilename = "logfile"
 logfile = open(os.path.join(logDirectory, logfilename) + ".log", "w")
 logfile.writelines("\n\n(\\_/)\n(^_^)\n@(\")(\")\n\n")
 
-versionString = sys.argv[1]
+match = re.search(r'^\d\.\d\.\d+', sys.argv[1])
+#match = re.search("^[0-9.]+", sys.argv[1])
+versionString = match.group(0)
 versionArray = versionString.split('.')
 majorMinorString = versionArray[0] + "." + versionArray[1]
 major = int(versionArray[0])
