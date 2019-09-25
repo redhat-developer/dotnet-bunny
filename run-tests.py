@@ -28,6 +28,12 @@ class DotnetBunny(object):
             config = json.load(open(configPath))
 
             self.name = config["name"]
+            directory_name = os.path.basename(os.path.dirname(configPath))
+            if self.name != directory_name:
+                print("error: mismatch in directory name '%s' vs test name '%s' in '%s'" %
+                    (directory_name, self.name, configPath))
+                exit(3)
+
             self.enabled = config["enabled"]
             self.type = config["type"]
             self.anyMinor = config["version"].split('.')[1] == "x"
