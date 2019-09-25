@@ -32,11 +32,11 @@ class DotnetBunny(object):
             self.type = config["type"]
             self.anyMinor = config["version"].split('.')[1] == "x"
             if self.anyMinor:
-                self.version = int(config["version"].split('.')[0])
+                self.version = int(config["version"].split('.')[0] + '0')
             else:
                 self.version = int(config["version"].replace('.', ""))
-                if self.version < 10000:
-                    self.version = self.version * 1000
+            if self.version < 10000:
+                self.version = self.version * 1000
 
             self.versionSpecific = config["versionSpecific"]
             self.platformBlacklist = config["platformBlacklist"]
