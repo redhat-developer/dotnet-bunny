@@ -2,7 +2,7 @@
 all: publish
 
 check:
-	dotnet test -c Release Turkey.Tests
+	dotnet test -c Release --verbosity detailed Turkey.Tests
 
 run-samples:
 	rm -rf ~/.nuget.orig && mv ~/.nuget ~/.nuget.orig && mkdir -p ~/.nuget
