@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace Turkey
 {
-    public class Version
+    public class Version: IComparable
     {
         public int Major { get; }
         public int Minor { get; }
@@ -96,6 +96,16 @@ namespace Turkey
             }
 
             return 0;
+        }
+
+        public int CompareTo(object o)
+        {
+            if (o.GetType() != typeof(Version))
+            {
+                throw new ArgumentException("Can only compare versions");
+            }
+
+            return CompareTo(this, (Version) o);
         }
 
         public int CompareTo(Version x) { return CompareTo(this, x); }

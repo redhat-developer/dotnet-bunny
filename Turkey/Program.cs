@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 
 using System.CommandLine;
-using System.CommandLine.Builder;
 using System.CommandLine.Invocation;
 using System.Threading;
 
@@ -15,19 +14,31 @@ namespace Turkey
     {
         public static readonly Option verboseOption = new Option(
             new string[] { "--verbose", "-v" },
-            "Show verbose output", new Argument<bool>());
+            "Show verbose output")
+        {
+            Argument = new Argument<bool>()
+        };
 
         public static readonly Option compatibleOption = new Option(
             new string[] { "--compatible", "-c" },
-            "Make output compatible with dotnet-bunny", new Argument<bool>());
+            "Make output compatible with dotnet-bunny")
+        {
+            Argument = new Argument<bool>()
+        };
 
         public static readonly Option logDirectoryOption = new Option(
             new string[] { "--log-directory", "-l" },
-            "Set directory for writing log files", new Argument<string>());
+            "Set directory for writing log files")
+        {
+            Argument = new Argument<string>(),
+        };
 
         public static readonly Option timeoutOption = new Option(
             new string[] { "--timeout", "-t" },
-            "Set the timeout duration for test in seconds", new Argument<int>());
+            "Set the timeout duration for test in seconds")
+        {
+            Argument = new Argument<int>()
+        };
 
         public static async Task<int> Run(string testRoot, bool verbose, bool compatible, string logDirectory, int timeout)
         {
@@ -134,8 +145,8 @@ namespace Turkey
         static async Task<int> Main(string[] args)
         {
             Func<string, bool, bool, string, int, Task<int>> action = Run;
-            var rootCommand = new RootCommand(description: "A test runner for running standalone bash-based or xunit tests",
-                                              handler: CommandHandler.Create(action));
+            var rootCommand = new RootCommand(description: "A test runner for running standalone bash-based or xunit tests");
+            rootCommand.Handler = CommandHandler.Create(action);
 
             var testRootArgument = new Argument<string>();
             testRootArgument.Name = "testRoot";
@@ -143,17 +154,12 @@ namespace Turkey
             testRootArgument.Arity = ArgumentArity.ZeroOrOne;
 
             rootCommand.AddArgument(testRootArgument);
+            rootCommand.AddOption(compatibleOption);
+            rootCommand.AddOption(verboseOption);
+            rootCommand.AddOption(logDirectoryOption);
+            rootCommand.AddOption(timeoutOption);
 
-            var parser = new CommandLineBuilder(rootCommand)
-                .AddOption(compatibleOption)
-                .AddOption(verboseOption)
-                .AddOption(logDirectoryOption)
-                .AddOption(timeoutOption)
-                .UseVersionOption()
-                .UseHelp()
-                .UseParseErrorReporting()
-                .Build();
-            return await parser.InvokeAsync(args);
+            return await rootCommand.InvokeAsync(args);
         }
     }
 }
