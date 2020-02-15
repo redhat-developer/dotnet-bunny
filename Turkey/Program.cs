@@ -33,6 +33,13 @@ namespace Turkey
             Argument = new Argument<string>(),
         };
 
+        public static readonly Option additionalFeedOption = new Option(
+            new string[] { "--additional-feed", "-s" },
+            "Additional nuget repository feed")
+        {
+            Argument = new Argument<string>(),
+        };
+
         public static readonly Option timeoutOption = new Option(
             new string[] { "--timeout", "-t" },
             "Set the timeout duration for test in seconds")
@@ -40,7 +47,12 @@ namespace Turkey
             Argument = new Argument<int>()
         };
 
-        public static async Task<int> Run(string testRoot, bool verbose, bool compatible, string logDirectory, int timeout)
+        public static async Task<int> Run(string testRoot,
+                                          bool verbose,
+                                          bool compatible,
+                                          string logDirectory,
+                                          string additionalFeed,
+                                          int timeout)
         {
             TimeSpan timeoutForEachTest;
             if (timeout == 0)
@@ -99,7 +111,7 @@ namespace Turkey
             );
 
             Version packageVersion = dotnet.LatestRuntimeVersion;
-            string nuGetConfig = await GetNuGetConfigIfNeededAsync(packageVersion);
+            string nuGetConfig = await GenerateNuGetConfigIfNeededAsync(additionalFeed, packageVersion);
 
             TestRunner runner = new TestRunner(
                 cleaner: cleaner,
@@ -115,36 +127,51 @@ namespace Turkey
             return exitCode;
         }
 
-        public static async Task<string> GetNuGetConfigIfNeededAsync(Version netCoreAppVersion)
+        public static async Task<string> GenerateNuGetConfigIfNeededAsync(string additionalFeed, Version netCoreAppVersion)
         {
+            var urls = new List<string>();
+
+            if (!string.IsNullOrEmpty(additionalFeed))
+            {
+                urls.Add(additionalFeed);
+            }
+
             using (HttpClient client = new HttpClient())
             {
                 var nuget = new NuGet(client);
                 var sourceBuild = new SourceBuild(client);
-                return await GetNuGetConfigIfNeededAsync(nuget, sourceBuild, netCoreAppVersion);
-            }
-        }
-
-        public static async Task<string> GetNuGetConfigIfNeededAsync(NuGet nuget, SourceBuild sourceBuild, Version netCoreAppVersion)
-        {
-            string nuGetConfig = null;
-            bool live = await nuget.IsPackageLiveAsync("Microsoft.NetCore.App", netCoreAppVersion);
-            if (!live)
-            {
-                var feed = await sourceBuild.GetProdConFeedAsync(netCoreAppVersion);
-                if (!string.IsNullOrEmpty(feed))
+                var prodConUrl = await GetProdConFeedUrlIfNeededAsync(nuget, sourceBuild, netCoreAppVersion);
+                prodConUrl = prodConUrl.Trim();
+                if (!string.IsNullOrEmpty(prodConUrl))
                 {
-                    nuGetConfig = nuget.GenerateNuGetConfig(new List<string>{feed});
-                    Console.WriteLine($"Packages are not live on nuget.org; using {feed} as additional package source");
+                    Console.WriteLine($"Packages are not live on nuget.org; using {prodConUrl} as additional package source");
+                    urls.Add(prodConUrl);
+                }
+
+                if (urls.Count != 0)
+                {
+                    Console.WriteLine("Using nuget sources: " + string.Join(", ", urls));
+                    return nuget.GenerateNuGetConfig(urls);
                 }
             }
 
-            return nuGetConfig;
+            return null;
+        }
+
+        public static async Task<string> GetProdConFeedUrlIfNeededAsync(NuGet nuget, SourceBuild sourceBuild, Version netCoreAppVersion)
+        {
+            bool live = await nuget.IsPackageLiveAsync("Microsoft.NetCore.App", netCoreAppVersion);
+            if (!live)
+            {
+                return await sourceBuild.GetProdConFeedAsync(netCoreAppVersion);
+            }
+
+            return null;
         }
 
         static async Task<int> Main(string[] args)
         {
-            Func<string, bool, bool, string, int, Task<int>> action = Run;
+            Func<string, bool, bool, string, string, int, Task<int>> action = Run;
             var rootCommand = new RootCommand(description: "A test runner for running standalone bash-based or xunit tests");
             rootCommand.Handler = CommandHandler.Create(action);
 
@@ -157,6 +184,7 @@ namespace Turkey
             rootCommand.AddOption(compatibleOption);
             rootCommand.AddOption(verboseOption);
             rootCommand.AddOption(logDirectoryOption);
+            rootCommand.AddOption(additionalFeedOption);
             rootCommand.AddOption(timeoutOption);
 
             return await rootCommand.InvokeAsync(args);
