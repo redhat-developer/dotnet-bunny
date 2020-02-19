@@ -141,9 +141,9 @@ namespace Turkey
                 var nuget = new NuGet(client);
                 var sourceBuild = new SourceBuild(client);
                 var prodConUrl = await GetProdConFeedUrlIfNeededAsync(nuget, sourceBuild, netCoreAppVersion);
-                prodConUrl = prodConUrl.Trim();
                 if (!string.IsNullOrEmpty(prodConUrl))
                 {
+                    prodConUrl = prodConUrl.Trim();
                     Console.WriteLine($"Packages are not live on nuget.org; using {prodConUrl} as additional package source");
                     urls.Add(prodConUrl);
                 }
@@ -160,7 +160,7 @@ namespace Turkey
 
         public static async Task<string> GetProdConFeedUrlIfNeededAsync(NuGet nuget, SourceBuild sourceBuild, Version netCoreAppVersion)
         {
-            bool live = await nuget.IsPackageLiveAsync("Microsoft.NetCore.App", netCoreAppVersion);
+            bool live = await nuget.IsPackageLiveAsync("runtime.linux-x64.Microsoft.NetCore.DotNetAppHost", netCoreAppVersion);
             if (!live)
             {
                 return await sourceBuild.GetProdConFeedAsync(netCoreAppVersion);
