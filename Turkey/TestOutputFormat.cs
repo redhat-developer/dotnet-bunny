@@ -1,4 +1,5 @@
 using System;
+using System.Runtime;
 using System.Threading.Tasks;
 
 namespace Turkey
@@ -27,7 +28,7 @@ namespace Turkey
                 }
             }
 
-            public async override Task AfterRunningTestAsync(string name, TestResult result)
+            public async override Task AfterRunningTestAsync(string name, TestResult result, TimeSpan testTime)
             {
                 string resultText;
                 switch (result.Status)
@@ -73,8 +74,9 @@ namespace Turkey
                 Console.Write(nameText);
             }
 
-            public async override Task AfterRunningTestAsync(string name, TestResult result)
+            public async override Task AfterRunningTestAsync(string name, TestResult result, TimeSpan testTime)
             {
+                string elapsedTime = testTime.TotalMilliseconds.ToString();
                 string resultOutput = null;
                 if (Console.IsOutputRedirected || Console.IsErrorRedirected)
                 {
@@ -94,7 +96,7 @@ namespace Turkey
                         case TestStatus.Failed: resultOutput = "\u001b[31mFAIL\u001b[0m"; break;
                         case TestStatus.Skipped: resultOutput = "SKIP"; break;
                     }
-                    Console.WriteLine($"[{resultOutput}]");
+                    Console.WriteLine($"[{resultOutput}]\t({elapsedTime}ms)");
                 }
 
                 await _logWriter.WriteAsync(name, result.StandardOutput, result.StandardError);

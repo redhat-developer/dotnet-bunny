@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,7 +36,7 @@ namespace Turkey
         public async virtual Task AtStartupAsync() {}
         public async virtual Task BeforeTestAsync() {}
         public async virtual Task AfterParsingTestAsync(string name, bool enabled) {}
-        public async virtual Task AfterRunningTestAsync(string name, TestResult result) {}
+        public async virtual Task AfterRunningTestAsync(string name, TestResult result, TimeSpan testTime) {}
         public async virtual Task AfterRunningAllTestsAsync(TestResults results) {}
     }
 
@@ -61,6 +63,8 @@ namespace Turkey
 
             TestResults results = new TestResults();
 
+            Stopwatch testTimeWatch = new Stopwatch();
+
             var options = new EnumerationOptions
             {
                 RecurseSubdirectories = true,
@@ -75,10 +79,12 @@ namespace Turkey
 
             foreach (var file in sortedFiles)
             {
+                testTimeWatch.Reset();
                 var cancellationTokenSource = GetNewCancellationToken();
                 var cancellationToken = cancellationTokenSource.Token;
                 await cleaner.CleanLocalDotNetCacheAsync();
 
+                testTimeWatch.Start();
                 var parsedTest = await parser.TryParseAsync(system, nuGetConfig, file);
                 if (!parsedTest.Success)
                 {
@@ -96,6 +102,9 @@ namespace Turkey
                 }
 
                 var result = await test.RunAsync(cancellationToken);
+
+                testTimeWatch.Stop();
+
                 results.Total++;
                 switch (result.Status)
                 {
@@ -104,7 +113,7 @@ namespace Turkey
                     case TestStatus.Skipped: results.Skipped++; break;
                 }
 
-                await output.AfterRunningTestAsync(test.Descriptor.Name, result);
+                await output.AfterRunningTestAsync(test.Descriptor.Name, result, testTimeWatch.Elapsed);
             }
 
             await output.AfterRunningAllTestsAsync(results);
