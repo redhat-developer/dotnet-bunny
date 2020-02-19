@@ -6,12 +6,19 @@ This is a test runner for running integration/regression tests for
 It uses the same format for identifying, selecting and running tests
 as [dotnet-bunny](https://github.com/redhat-developer/dotnet-bunny/).
 
+# Building
+
+Use the following command to build the `turkey` program and place it in the
+`bin/` directory.
+
+    make
+
 # Running Tests
 
 If you have a directory containing tests, you can run them via
 invoking the `turkey` shell script. For example:
 
-    ./turkey Samples
+    ./bin/turkey Samples
     BashTestSpecificToDotNet2x                                  [PASS]
     BashTestSpecificToDotNet50                                  [SKIP]
     DisabledBashTest                                            [SKIP]
