@@ -57,17 +57,24 @@ namespace Turkey
         {
             foreach (var path in CruftDirectoryGlobs())
             {
-                foreach(var expanded in ExpandPath(path))
+                try
                 {
-                    // Console.WriteLine("Deleting: " + expanded);
-                    try
+                    foreach(var expanded in ExpandPath(path))
                     {
-                        Directory.Delete(expanded, true);
+                        // Console.WriteLine("Deleting: " + expanded);
+                        try
+                        {
+                            Directory.Delete(expanded, true);
+                        }
+                        catch (IOException)
+                        {
+                            Console.WriteLine($"WARNING: unable to delete {expanded}");
+                        }
                     }
-                    catch (IOException)
-                    {
-                        Console.WriteLine($"WARNING: unable to delete {expanded}");
-                    }
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    Console.WriteLine($"WARNING: unable to expand {path}");
                 }
             }
             return;
