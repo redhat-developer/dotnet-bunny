@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -104,10 +105,13 @@ namespace Turkey
                 outputFormat = new TestOutputFormats.DotNetBunnyOutput(logWriter);
             }
 
+            List<string> platformIds = new PlatformId().CurrentIds;
+            Console.WriteLine($"Current platform is: {string.Join(", ", platformIds)}");
+
             SystemUnderTest system = new SystemUnderTest(
                 runtimeVersion: dotnet.LatestRuntimeVersion,
                 sdkVersion: dotnet.LatestSdkVersion,
-                platformIds: new PlatformId().CurrentIds
+                platformIds: platformIds
             );
 
             Version packageVersion = dotnet.LatestRuntimeVersion;
