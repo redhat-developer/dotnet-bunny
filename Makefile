@@ -14,7 +14,15 @@ run-samples:
 
 publish:
 	git rev-parse --short HEAD > GIT_COMMIT_ID
-	(cd Turkey; dotnet publish -c $(CONFIGURATION) -r $(RUNTIME) -p:VersionSuffix=$$(cat ../GIT_COMMIT_ID) -p:PublishSingleFile=true -p:PublishTrimmed=true)
+	git describe --exact-match --abbrev=0 | sed -e 's/^v//' > GIT_TAG_VERSION
+	(cd Turkey; \
+	 dotnet publish \
+	 -c $(CONFIGURATION) \
+	 -r $(RUNTIME) \
+	 -p:VersionPrefix=$$(cat ../GIT_TAG_VERSION) \
+	 -p:VersionSuffix=$$(cat ../GIT_COMMIT_ID) \
+	 -p:PublishSingleFile=true \
+	 -p:PublishTrimmed=true)
 	mkdir -p bin
 	cp -a ./Turkey/bin/$(CONFIGURATION)/$(FRAMEWORK)/$(RUNTIME)/publish/Turkey bin/turkey
 
