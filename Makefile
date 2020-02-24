@@ -14,7 +14,7 @@ run-samples:
 
 publish:
 	git rev-parse --short HEAD > GIT_COMMIT_ID
-	git describe --exact-match --abbrev=0 | sed -e 's/^v//' > GIT_TAG_VERSION
+	git describe --abbrev=0 | sed -e 's/^v//' > GIT_TAG_VERSION
 	(cd Turkey; \
 	 dotnet publish \
 	 -c $(CONFIGURATION) \
