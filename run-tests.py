@@ -31,9 +31,8 @@ def main(args):
     if not os.path.exists(binary):
         download_turkey(binary)
 
-    p = subprocess.run([binary, '--version'], capture_output=True, universal_newlines=True, shell=False)
+    p = subprocess.run([binary, '--version'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, shell=False)
     print(p.stdout)
-    print(p.stderr)
     if p.returncode != 0:
         return returncode
 
@@ -47,9 +46,8 @@ def main(args):
 
     print('Running: ' + str(test_args))
 
-    p = subprocess.run(test_args, capture_output=True, universal_newlines=True, shell=False)
+    p = subprocess.run(test_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, shell=False)
     print(p.stdout)
-    print(p.stderr)
     if p.returncode != 0:
         return p.returncode
 
