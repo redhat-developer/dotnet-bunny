@@ -99,11 +99,18 @@ namespace Turkey
 
             DotNet dotnet = new DotNet();
 
-            TestOutput outputFormat = new TestOutputFormats.NewOutput(logWriter);
+            TestOutput defaultOutput = new TestOutputFormats.NewOutput(logWriter);
             if (compatible)
             {
-                outputFormat = new TestOutputFormats.DotNetBunnyOutput(logWriter);
+                defaultOutput = new TestOutputFormats.DotNetBunnyOutput(logWriter);
             }
+
+            TestOutput junitOutput = new TestOutputFormats.JUnitOutput(logDir);
+
+            var testOutputs = new List<TestOutput>() {
+                defaultOutput,
+                junitOutput,
+            };
 
             List<string> platformIds = new PlatformId().CurrentIds;
             Console.WriteLine($"Current platform is: {string.Join(", ", platformIds)}");
@@ -125,7 +132,8 @@ namespace Turkey
                 nuGetConfig: nuGetConfig);
 
             var cancellationTokenSource = new Func<CancellationTokenSource>(() => new CancellationTokenSource(timeoutForEachTest));
-            var results = await runner.ScanAndRunAsync(outputFormat, cancellationTokenSource);
+
+            var results = await runner.ScanAndRunAsync(testOutputs, cancellationTokenSource);
 
             int exitCode = (results.Failed == 0) ? 0 : 1;
             return exitCode;

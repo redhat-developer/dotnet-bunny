@@ -6,6 +6,8 @@ This is a test runner for running integration/regression tests for
 It uses the same format for identifying, selecting and running tests
 as [dotnet-bunny](https://github.com/redhat-developer/dotnet-bunny/).
 
+It produces results in various forms, including a junit-compatible xml file.
+
 # Building
 
 Use the following command to build the `turkey` program and place it in the

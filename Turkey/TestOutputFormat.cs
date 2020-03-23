@@ -1,6 +1,9 @@
 using System;
-using System.Runtime;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace Turkey
 {
@@ -105,6 +108,115 @@ namespace Turkey
             public async override Task AfterRunningAllTestsAsync(TestResults results)
             {
                 Console.WriteLine($"Total: {results.Total} Passed: {results.Passed} Failed: {results.Failed}");
+            }
+        }
+
+        public class JUnitOutput : TestOutput
+        {
+            private struct TestCase {
+                public string Name;
+                public string ClassName;
+                public bool Failed;
+                public bool Skipped;
+                public string Message;
+                public string StandardOutput;
+                public string StandardError;
+            }
+
+            private List<TestCase> _testCases = new List<TestCase>();
+            private FileInfo _resultsFile;
+
+            public JUnitOutput(DirectoryInfo logDirectory)
+            : this(new FileInfo(Path.Combine(logDirectory.FullName, "results.xml")))
+            {
+            }
+
+            public JUnitOutput(FileInfo resultsFile)
+            {
+                _resultsFile = resultsFile;
+            }
+
+            public async override Task AfterParsingTestAsync(string name, bool enabled)
+            {
+
+            }
+
+            public async override Task AfterRunningTestAsync(string name, TestResult result, TimeSpan testTime)
+            {
+                var testCase = new TestCase();
+                testCase.Name = name;
+                testCase.ClassName = "TestSuite";
+                testCase.Failed = (result.Status == TestStatus.Failed);
+                testCase.Skipped = (result.Status == TestStatus.Skipped);
+                testCase.Message = "see stdout/stderr";
+                testCase.StandardOutput = result.StandardOutput;
+                testCase.StandardError = result.StandardError;
+
+                _testCases.Add(testCase);
+            }
+
+            public async override Task AfterRunningAllTestsAsync(TestResults results)
+            {
+                var settings = new XmlWriterSettings();
+                settings.Indent = true;
+
+                using (var writer = XmlWriter.Create(_resultsFile.FullName, settings))
+                {
+                    writer.WriteStartDocument();
+
+                    writer.WriteStartElement("testsuite");
+
+                    foreach (var testCase in _testCases)
+                    {
+                        writer.WriteStartElement("testcase");
+                        writer.WriteAttributeString("name", testCase.Name);
+                        writer.WriteAttributeString("classname", testCase.ClassName);
+
+                        if (testCase.Skipped)
+                        {
+                            writer.WriteStartElement("skipped");
+                            writer.WriteAttributeString("message", testCase.Message);
+                            writer.WriteEndElement();
+                        }
+
+                        if (testCase.Failed)
+                        {
+                            writer.WriteStartElement("failure");
+                            writer.WriteAttributeString("message", testCase.Message);
+                            writer.WriteAttributeString("type", "AssertionError");
+                            writer.WriteEndElement();
+                        }
+
+                        if (testCase.StandardOutput != null)
+                        {
+                            writer.WriteStartElement("system-out");
+                            string standardOutput = RemoveInvalidXmlCharacters(testCase.StandardOutput);
+                            writer.WriteString(standardOutput);
+                            writer.WriteEndElement();
+                        }
+
+                        if (testCase.StandardError != null)
+                        {
+                            writer.WriteStartElement("system-err");
+                            string standardError = RemoveInvalidXmlCharacters(testCase.StandardError);
+                            writer.WriteString(standardError);
+                            writer.WriteEndElement();
+                        }
+
+                        writer.WriteEndElement();
+
+                    }
+
+                    writer.WriteEndElement();
+
+                    writer.WriteEndDocument();
+                    writer.Close();
+                }
+            }
+
+            private string RemoveInvalidXmlCharacters(string input)
+            {
+                return Regex.Replace(input, @"[\u0000-\u0008,\u000B,\u000C,\u000E-\u001F]", "");
             }
         }
     }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -57,9 +56,9 @@ namespace Turkey
             this.nuGetConfig = nuGetConfig;
         }
 
-        public async Task<TestResults> ScanAndRunAsync(TestOutput output, Func<CancellationTokenSource> GetNewCancellationToken)
+        public async Task<TestResults> ScanAndRunAsync(List<TestOutput> outputs, Func<CancellationTokenSource> GetNewCancellationToken)
         {
-            await output.AtStartupAsync();
+            await outputs.ForEachAsync(output => output.AtStartupAsync());
 
             TestResults results = new TestResults();
 
@@ -94,7 +93,7 @@ namespace Turkey
 
                 var test = parsedTest.Test;
 
-                await output.AfterParsingTestAsync(test.Descriptor.Name, !test.Skip);
+                await outputs.ForEachAsync(output => output.AfterParsingTestAsync(test.Descriptor.Name, !test.Skip));
 
                 if (test.Descriptor.Cleanup)
                 {
@@ -113,10 +112,10 @@ namespace Turkey
                     case TestStatus.Skipped: results.Skipped++; break;
                 }
 
-                await output.AfterRunningTestAsync(test.Descriptor.Name, result, testTimeWatch.Elapsed);
+                await outputs.ForEachAsync(output => output.AfterRunningTestAsync(test.Descriptor.Name, result, testTimeWatch.Elapsed));
             }
 
-            await output.AfterRunningAllTestsAsync(results);
+            await outputs.ForEachAsync(output => output.AfterRunningAllTestsAsync(results));
 
             return results;
         }
