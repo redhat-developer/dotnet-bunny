@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
@@ -165,6 +166,10 @@ namespace Turkey
                     writer.WriteStartDocument();
 
                     writer.WriteStartElement("testsuite");
+                    writer.WriteAttributeString("name", "dotnet");
+                    writer.WriteAttributeString("tests", _testCases.Count.ToString());
+                    writer.WriteAttributeString("failures", _testCases.Where(t => t.Failed).Count().ToString());
+                    writer.WriteAttributeString("errors", "0");
 
                     foreach (var testCase in _testCases)
                     {

@@ -17,7 +17,7 @@ namespace Turkey.Tests
             var xml = File.ReadAllText(resultsFile.FullName);
 
             var expectedXml = @"<?xml version=""1.0"" encoding=""utf-8""?>
-<testsuite />";
+<testsuite name=""dotnet"" tests=""0"" failures=""0"" errors=""0"" />";
 
             Assert.Equal(expectedXml, xml);
 
@@ -36,7 +36,7 @@ namespace Turkey.Tests
             var xml = File.ReadAllText(resultsFile.FullName);
 
             var expectedXml = @"<?xml version=""1.0"" encoding=""utf-8""?>
-<testsuite>
+<testsuite name=""dotnet"" tests=""1"" failures=""0"" errors=""0"">
   <testcase name=""foo"" classname=""TestSuite"">
     <system-out></system-out>
     <system-err></system-err>
@@ -62,7 +62,7 @@ namespace Turkey.Tests
             var xml = File.ReadAllText(resultsFile.FullName);
 
             var expectedXml = @"<?xml version=""1.0"" encoding=""utf-8""?>
-<testsuite>
+<testsuite name=""dotnet"" tests=""1"" failures=""0"" errors=""0"">
   <testcase name=""foo"" classname=""TestSuite"">
     <system-out>aaa</system-out>
     <system-err>bbb</system-err>
