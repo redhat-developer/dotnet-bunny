@@ -45,6 +45,7 @@ a `test.json` file. An example of this file:
     {
       "name": "CVE-2018-0875",
       "enabled": true,
+      "requiresSdk": true,
       "version": "2.0",
       "versionSpecific": false,
       "type": "xunit",
@@ -72,6 +73,11 @@ the following keys:
 
   Indicates whether a test is enabled. Useful for disabling specific
   tests that are causing issues.
+
+- `requiresSdk`
+
+  Indicates whether a test requires SDK to be installed. If false 
+  the test will run even when there is no SDK present.
 
 - `version`
 
