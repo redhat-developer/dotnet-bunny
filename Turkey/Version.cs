@@ -15,6 +15,11 @@ namespace Turkey
 
         public static Version Parse(string input)
         {
+            if( string.IsNullOrEmpty(input) )
+            {
+                return null;
+            }
+
             var parts = input.Split('.').ToList();
             bool invalidParts = (from part in parts where part.Count() == 0 select part).Count() != 0;
             if (invalidParts)

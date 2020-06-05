@@ -53,6 +53,11 @@ namespace Turkey
                 return false;
             }
 
+            if (system.SdkVersion == null && test.RequiresSdk)
+            {
+                return false;
+            }
+
             var blacklisted = system.CurrentPlatformIds
                 .Where(rid => test.PlatformBlacklist.Contains(rid))
                 .Any();

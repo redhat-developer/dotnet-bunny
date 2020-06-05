@@ -1,6 +1,7 @@
 {
   "name": "DisabledBashTest",
   "enabled": false,
+  "requiresSdk": true,
   "version": "1.x",
   "versionSpecific": false,
   "type": "bash",

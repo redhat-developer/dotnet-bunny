@@ -71,10 +71,7 @@ namespace Turkey
         {
             get
             {
-                Version version = SdkVersions.LastOrDefault();
-                if( version == null )
-                    Environment.Exit(0); //TODO / wHACK - temporary solution to not block dependency tests.
-                return version;
+                return SdkVersions.LastOrDefault();
             }
         }
 
