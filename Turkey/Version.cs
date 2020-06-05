@@ -125,7 +125,18 @@ namespace Turkey
 
         public static bool operator >=(Version x, Version y) { return CompareTo(x, y) >= 0; }
 
-        public static bool operator ==(Version x, Version y) { return CompareTo(x, y) == 0; }
+        public static bool operator ==(Version x, Version y)
+        {
+            if (object.ReferenceEquals(x, null) && object.ReferenceEquals(y, null))
+            {
+                return true;
+            }
+            else if (object.ReferenceEquals(x, null) || object.ReferenceEquals(y, null))
+            {
+                return false;
+            }
+            return CompareTo(x, y) == 0;
+        }
 
         public static bool operator !=(Version x, Version y) { return CompareTo(x, y) != 0; }
 
