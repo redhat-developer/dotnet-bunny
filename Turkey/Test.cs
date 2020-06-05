@@ -12,6 +12,7 @@ namespace Turkey
     {
         public string Name { get; set; }
         public bool Enabled { get; set; }
+        public bool RequiresSdk { get; set; }
         public string Version { get; set; }
         public bool VersionSpecific { get; set; }
         public string Type { get; set; }

@@ -1,6 +1,7 @@
 {
   "name": "TestThatReliesOnNuGetBeingEmpty",
   "enabled": true,
+  "requiresSdk": true,
   "version": "1.0",
   "versionSpecific": false,
   "type": "bash",

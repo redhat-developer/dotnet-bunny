@@ -46,6 +46,7 @@ namespace Turkey.Tests
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = true,
+                RequiresSdk = false,
                 VersionSpecific = false,
                 Version = "2.1",
             };
@@ -78,6 +79,7 @@ namespace Turkey.Tests
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = true,
+                RequiresSdk = false,
                 VersionSpecific = true,
                 Version = "2.1",
             };
@@ -113,6 +115,7 @@ namespace Turkey.Tests
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = true,
+                RequiresSdk = false,
                 VersionSpecific = true,
                 Version = "2.x",
             };
@@ -140,8 +143,33 @@ namespace Turkey.Tests
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = true,
+                RequiresSdk = false,
                 Version = "2.1",
                 PlatformBlacklist = platformBlacklist.ToList(),
+            };
+
+            var shouldRun = parser.ShouldRunTest(system, test);
+
+            Assert.Equal(expectedToRun, shouldRun);
+        }
+
+        [Theory]
+        [InlineData("3.1.104", true, true)]
+        [InlineData(null, false, true)]
+        [InlineData(null, true, false)]
+        public void SdkTestsShouldRunOnlyWithSdk(string sdkVersion, bool requiresSdk, bool expectedToRun)
+        {
+            TestParser parser = new TestParser();
+            SystemUnderTest system = new SystemUnderTest(
+                runtimeVersion: Version.Parse("3.1"),
+                sdkVersion: Version.Parse(sdkVersion),
+                platformIds: new List<string>());
+            TestDescriptor test = new TestDescriptor()
+            {
+                Enabled = true,
+                RequiresSdk = requiresSdk,
+                VersionSpecific = false,
+                Version = "2.1",
             };
 
             var shouldRun = parser.ShouldRunTest(system, test);

@@ -1,6 +1,7 @@
 {
   "name": "BashTestSpecificToDotNet2x",
   "enabled": true,
+  "requiresSdk": true,
   "version": "2.x",
   "versionSpecific": true,
   "type": "bash",
