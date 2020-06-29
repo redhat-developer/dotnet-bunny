@@ -1,0 +1,13 @@
+{
+  "name": "NonX64Test",
+  "enabled": true,
+  "requiresSdk": true,
+  "version": "1.0",
+  "versionSpecific": false,
+  "type": "bash",
+  "cleanup": true,
+  "platformBlacklist":[
+    "linux-x64"
+  ]
+}
+

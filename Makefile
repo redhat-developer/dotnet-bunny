@@ -1,6 +1,6 @@
-FRAMEWORK=netcoreapp3.1
-CONFIGURATION=Release
-RUNTIME=linux-x64
+FRAMEWORK:=netcoreapp3.1
+CONFIGURATION:=Release
+RUNTIME:=linux-$(subst aarch64,arm64,$(subst x86_64,x64,$(shell uname -m)))
 
 all: publish
 

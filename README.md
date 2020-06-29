@@ -116,12 +116,15 @@ the following keys:
 
 - `platformBlacklist`
 
-  This is a list of platform names, optionally followed by the
-  version, where this test is invalid . For example, `["fedora"]`
-  means this test should be skipped on all Fedora platforms.
-  `["rhel7"]` means this test should be skipped on RHEL 7, but not on
-  RHEL 8, or another RHEL version.
+  This is a list of runtime-ids or platform names (optionally followed
+  by the version) where this test is invalid.
 
+  Examples:
+
+  - `["linux-arm64"]`: skip this test on `arm64` (aka `aarch64`)
+  - `["fedora"]`: skip this test on all Fedora platforms
+  - `["rhel.7"]` or `["rhel7"]`: skip this test on RHEL 7, but not on RHEL 8, or another RHEL version
+  - `["rhel.8-arm64"]`: skip this test on RHEL 8 on arm64
 
 ## Notes on Writing Tests
 
