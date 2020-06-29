@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Turkey
 {
@@ -9,14 +10,17 @@ namespace Turkey
     {
         public List<string> CurrentIds
         {
-            get
-            {
-                // TODO make this async?
-                return GetPlatformIdsFromOsRelease(File.ReadAllLines("/etc/os-release"));
-            }
+            // TODO make this async?
+            get => GetPlatformIdsFromOsRelease(File.ReadAllLines("/etc/os-release"));
         }
 
         public List<string> GetPlatformIdsFromOsRelease(string[] lines)
+        {
+            string arch = Enum.GetName(typeof(Architecture), RuntimeInformation.OSArchitecture).ToLowerInvariant();
+            return GetPlatformIdsFromOsRelease(lines, arch);
+        }
+
+        public List<string> GetPlatformIdsFromOsRelease(string[] lines, string architecture)
         {
             var id = GetValue("ID", lines);
             id = Unquote(id);
@@ -30,7 +34,14 @@ namespace Turkey
                     versionId = versionId.Substring(0, indexOfDot);
                 }
             }
-            var platforms = new string[] { "linux", id, id + versionId };
+            var platforms = new string[] {
+                "linux",
+                "linux" + "-" + architecture,
+                id,
+                id + "-" + architecture,
+                id + versionId,
+                id + "." + versionId,
+                id + "." + versionId + "-" + architecture };
             return platforms.ToList();
         }
 
