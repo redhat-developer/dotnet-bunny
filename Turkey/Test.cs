@@ -17,7 +17,7 @@ namespace Turkey
         public bool VersionSpecific { get; set; }
         public string Type { get; set; }
         public bool Cleanup { get; set; }
-        public List<string> PlatformBlacklist { get; set; }
+        public List<string> IgnoredRIDs { get; set; }
     }
 
     // TODO is this a strongly-typed enum in C#?

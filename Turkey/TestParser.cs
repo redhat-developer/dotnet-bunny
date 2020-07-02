@@ -58,11 +58,11 @@ namespace Turkey
                 return false;
             }
 
-            var blacklisted = system.CurrentPlatformIds
-                .Where(rid => test.PlatformBlacklist.Contains(rid))
+            var skipped = system.CurrentPlatformIds
+                .Where(rid => test.IgnoredRIDs.Contains(rid))
                 .Any();
 
-            if (blacklisted)
+            if (skipped)
             {
                 return false;
             }
