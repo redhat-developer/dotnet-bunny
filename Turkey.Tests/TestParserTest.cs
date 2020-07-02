@@ -133,7 +133,7 @@ namespace Turkey.Tests
         [InlineData(new string[] { "fedora99" }, new string[] { "fedora10" }, true)]
         [InlineData(new string[] { "fedora" }, new string[] { "fedora" }, false)]
         [InlineData(new string[] { "fedora", "fedora99" }, new string[] { "fedora" }, false)]
-        public void TestShouldNotRunOnBlacklistedPlatforms(string[] currentPlatforms, string[] platformBlacklist, bool expectedToRun)
+        public void TestShouldNotRunOnIgnoredPlatforms(string[] currentPlatforms, string[] ignoredRIDs, bool expectedToRun)
         {
             TestParser parser = new TestParser();
             SystemUnderTest system = new SystemUnderTest(
@@ -145,7 +145,7 @@ namespace Turkey.Tests
                 Enabled = true,
                 RequiresSdk = false,
                 Version = "2.1",
-                PlatformBlacklist = platformBlacklist.ToList(),
+                IgnoredRIDs = ignoredRIDs.ToList(),
             };
 
             var shouldRun = parser.ShouldRunTest(system, test);
