@@ -50,7 +50,7 @@ a `test.json` file. An example of this file:
       "versionSpecific": false,
       "type": "xunit",
       "cleanup": true,
-      "platformBlacklist": [
+      "ignoredRIDs": [
         "fedora"
         "fedora29"
         "rhel7"
@@ -114,10 +114,11 @@ the following keys:
   Specifies whether directories like `obj` and `bin` should be deleted
   before running the test.
 
-- `platformBlacklist`
+- `ignoredRIDs`
 
   This is a list of runtime-ids or platform names (optionally followed
-  by the version) where this test is invalid.
+  by the version) where this test is invalid. The test will be skipped
+  on those platforms.
 
   Examples:
 
