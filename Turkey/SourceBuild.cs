@@ -18,6 +18,11 @@ namespace Turkey
         public Task<string> GetProdConFeedAsync(Version version)
         {
             var branchName = "release/" + version.MajorMinor;
+            // FIXME: hack to treat 5.0 as special for now
+            if (version.Major == 5)
+            {
+                branchName = "master";
+            }
             return GetProdConFeedAsync(branchName);
         }
 
