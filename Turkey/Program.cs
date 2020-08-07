@@ -151,13 +151,22 @@ namespace Turkey
             using (HttpClient client = new HttpClient())
             {
                 var nuget = new NuGet(client);
-                var sourceBuild = new SourceBuild(client);
-                var prodConUrl = await GetProdConFeedUrlIfNeededAsync(nuget, sourceBuild, netCoreAppVersion);
-                if (!string.IsNullOrEmpty(prodConUrl))
+                try
                 {
-                    prodConUrl = prodConUrl.Trim();
-                    Console.WriteLine($"Packages are not live on nuget.org; using {prodConUrl} as additional package source");
-                    urls.Add(prodConUrl);
+                    var sourceBuild = new SourceBuild(client);
+                    var prodConUrl = await GetProdConFeedUrlIfNeededAsync(nuget, sourceBuild, netCoreAppVersion);
+                    if( !string.IsNullOrEmpty(prodConUrl) )
+                    {
+                        prodConUrl = prodConUrl.Trim();
+                        Console.WriteLine($"Packages are not live on nuget.org; using {prodConUrl} as additional package source");
+                        urls.Add(prodConUrl);
+                    }
+                }
+                catch( HttpRequestException exception )
+                {
+                    Console.WriteLine("WARNING: failed to get ProdCon url. Ignoring Exception:");
+                    Console.WriteLine(exception.Message);
+                    Console.WriteLine(exception.StackTrace);
                 }
 
                 if (urls.Count != 0)
