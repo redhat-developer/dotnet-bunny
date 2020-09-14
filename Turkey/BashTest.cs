@@ -37,24 +37,26 @@ namespace Turkey
                 RedirectStandardError = true,
             };
             standardOutputWriter.WriteLine($"Executing {startInfo.FileName} with arguments {startInfo.Arguments} in working directory {startInfo.WorkingDirectory}");
-            Process p = Process.Start(startInfo);
-            var status = TestStatus.Failed;
-            try
+            using (Process p = Process.Start(startInfo))
             {
-                await p.WaitForExitAsync(cancellationToken, standardOutputWriter, standardErrorWriter);
-                status = (p.ExitCode == 0) ? TestStatus.Passed: TestStatus.Failed;
-                standardOutputWriter.WriteLine($"Exit Code: {p.ExitCode}");
-            }
-            catch (OperationCanceledException)
-            {
-                standardOutputWriter.WriteLine("[[TIMEOUT]]");
-                standardErrorWriter.WriteLine("[[TIMEOUT]]");
-            }
+                var status = TestStatus.Failed;
+                try
+                {
+                    await p.WaitForExitAsync(cancellationToken, standardOutputWriter, standardErrorWriter);
+                    status = (p.ExitCode == 0) ? TestStatus.Passed: TestStatus.Failed;
+                    standardOutputWriter.WriteLine($"Exit Code: {p.ExitCode}");
+                }
+                catch (OperationCanceledException)
+                {
+                    standardOutputWriter.WriteLine("[[TIMEOUT]]");
+                    standardErrorWriter.WriteLine("[[TIMEOUT]]");
+                }
 
-            return new TestResult(
-                status: status,
-                standardOutput: standardOutputWriter.ToString(),
-                standardError: standardErrorWriter.ToString());
+                return new TestResult(
+                    status: status,
+                    standardOutput: standardOutputWriter.ToString(),
+                    standardError: standardErrorWriter.ToString());
+            }
         }
     }
 }

@@ -10,7 +10,7 @@ namespace Turkey
     {
         public static Task WaitForExitAsync(this Process process, CancellationToken token, TextWriter standardOutput, TextWriter standardError)
         {
-
+            process.EnableRaisingEvents = true;
             var outputHandler = new DataReceivedEventHandler(
                 (sender, e) =>
                 {
@@ -19,7 +19,6 @@ namespace Turkey
                         standardOutput.WriteLine(e.Data);
                     }
                 });
-
             var errorHandler = new DataReceivedEventHandler(
                 (sender, e) =>
                 {
@@ -28,42 +27,43 @@ namespace Turkey
                         standardError.WriteLine(e.Data);
                     }
                 });
+            process.OutputDataReceived += outputHandler;
+            process.BeginOutputReadLine();
+            process.ErrorDataReceived += errorHandler;
+            process.BeginErrorReadLine();
 
             var tcs = new TaskCompletionSource<bool>();
+            CancellationTokenRegistration ctr = default;
+            ctr = token.Register(() => CompleteTask(cancel: true));
+            process.Exited += delegate { CompleteTask(cancel: false); };
+            if (process.HasExited) // In case the Process exited before we've added the handler.
+            {
+                CompleteTask(cancel: false);
+            }
+            return tcs.Task;
+
             void CompleteTask(bool cancel)
             {
                 if (cancel)
                 {
-                    tcs.TrySetCanceled();
+                    bool completed = tcs.TrySetCanceled();
 
-                    if (!process.HasExited)
+                    if (completed && !process.HasExited)
                     {
-                        process.Kill();;
+                        process.Kill(); ;
                     }
                 }
                 else
                 {
+                    process.WaitForExit();  // Wait until we've received all output.
+                    ctr.Dispose();          // Don't root objects via the CancellationToken.
+
                     tcs.TrySetResult(true);
                 }
 
                 process.OutputDataReceived -= outputHandler;
                 process.ErrorDataReceived -= errorHandler;
             }
-
-            token.Register(() => CompleteTask(cancel: true));
-            process.Exited += delegate { CompleteTask(cancel: false); };
-            process.EnableRaisingEvents = true;
-            process.OutputDataReceived += outputHandler;
-            process.BeginOutputReadLine();
-            process.ErrorDataReceived += errorHandler;
-            process.BeginErrorReadLine();
-
-            if (process.HasExited)
-            {
-                CompleteTask(cancel: false);
-            }
-
-            return tcs.Task;
         }
     }
 }
