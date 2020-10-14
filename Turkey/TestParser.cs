@@ -58,13 +58,16 @@ namespace Turkey
                 return false;
             }
 
-            var skipped = system.CurrentPlatformIds
-                .Where(rid => test.IgnoredRIDs.Contains(rid))
-                .Any();
-
-            if (skipped)
+            if (test.IgnoredRIDs != null)
             {
-                return false;
+                var skipped = system.CurrentPlatformIds
+                    .Where(rid => test.IgnoredRIDs.Contains(rid))
+                    .Any();
+
+                if (skipped)
+                {
+                    return false;
+                }
             }
 
             return true;
