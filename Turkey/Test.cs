@@ -163,16 +163,8 @@ namespace Turkey
             return new PartialResult(true, "", "");
         }
 
-        private string UpdateCsprojContents(string contents)
-        {
-            var pattern = "<TargetFramework>netcoreapp\\d\\.\\d+</TargetFramework>";
-            var versionString = this.SystemUnderTest.RuntimeVersion.MajorMinor;
-            var replacement = $"<TargetFramework>netcoreapp{versionString}</TargetFramework>";
-
-            var output = Regex.Replace(contents, pattern, replacement);
-
-            return output;
-        }
+        private string UpdateCsprojContents(string contents) =>
+            new CsprojCompatibilityPatcher().Patch(contents, this.SystemUnderTest.RuntimeVersion);
 
         protected abstract Task<TestResult> InternalRunAsync(CancellationToken cancellationToken);
 
