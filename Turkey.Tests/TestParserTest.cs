@@ -125,6 +125,26 @@ namespace Turkey.Tests
             Assert.Equal(expectedToRun, shouldRun);
         }
 
+        [Fact]
+        public void MissingIgnoredRIDsIsOkay()
+        {
+            TestParser parser = new TestParser();
+            SystemUnderTest system = new SystemUnderTest(
+                runtimeVersion: Version.Parse("2.1"),
+                sdkVersion: null,
+                platformIds: new string[] { "linux" }.ToList());
+            TestDescriptor test = new TestDescriptor()
+            {
+                Enabled = true,
+                RequiresSdk = false,
+                Version = "2.1",
+                IgnoredRIDs = null,
+            };
+
+            var shouldRun = parser.ShouldRunTest(system, test);
+
+            Assert.Equal(true, shouldRun);
+        }
         [Theory]
         [InlineData(new string[] { "linux" }, new string[] { }, true)]
         [InlineData(new string[] { "linux" }, new string[] { "fedora" }, true)]
