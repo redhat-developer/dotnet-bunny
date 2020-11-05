@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -15,20 +16,19 @@ namespace Turkey
             this._client = client;
         }
 
-        public Task<string> GetProdConFeedAsync(Version version)
+        public string GetBranch(Version version)
         {
-            var branchName = "release/" + version.MajorMinor;
             // FIXME: hack to treat 5.0 as special for now
             if (version.Major == 5)
             {
-                branchName = "master";
+                return "master";
             }
-            return GetProdConFeedAsync(branchName);
+            return "release/" + version.MajorMinor;
         }
 
-        public async Task<string> GetProdConFeedAsync(string branchName)
+        public async Task<string> GetProdConFeedAsync(Version version)
         {
-            var url = $"https://raw.githubusercontent.com/dotnet/source-build/{branchName}/ProdConFeed.txt";
+            var url = $"https://raw.githubusercontent.com/dotnet/source-build/{GetBranch(version)}/ProdConFeed.txt";
             var feedUrl = await _client.GetStringAsync(url);
 
             using(var response = await _client.GetAsync(feedUrl))
@@ -39,6 +39,23 @@ namespace Turkey
                 }
             }
             return feedUrl;
+        }
+
+        public async Task<string> GetNuGetConfigAsync(Version version)
+        {
+            string url = $"https://raw.githubusercontent.com/dotnet/source-build/{GetBranch(version)}/NuGet.config";
+
+            string nugetConfig = null;
+            try
+            {
+                nugetConfig = await _client.GetStringAsync(url);
+            }
+            catch( HttpRequestException e )
+            {
+                Console.WriteLine($"WARNING: {e.Message}");
+            }
+
+            return nugetConfig;
         }
     }
 }

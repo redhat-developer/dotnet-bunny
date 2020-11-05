@@ -151,9 +151,9 @@ namespace Turkey
             using (HttpClient client = new HttpClient())
             {
                 var nuget = new NuGet(client);
+                var sourceBuild = new SourceBuild(client);
                 try
                 {
-                    var sourceBuild = new SourceBuild(client);
                     var prodConUrl = await GetProdConFeedUrlIfNeededAsync(nuget, sourceBuild, netCoreAppVersion);
                     if( !string.IsNullOrEmpty(prodConUrl) )
                     {
@@ -169,11 +169,19 @@ namespace Turkey
                     Console.WriteLine(exception.StackTrace);
                 }
 
-                if (urls.Count != 0)
+                string nugetConfig = null;
+                try
                 {
-                    Console.WriteLine("Using nuget sources: " + string.Join(", ", urls));
-                    return nuget.GenerateNuGetConfig(urls);
+                    nugetConfig = await sourceBuild.GetNuGetConfigAsync(netCoreAppVersion);
                 }
+                catch( HttpRequestException exception )
+                {
+                    Console.WriteLine("WARNING: failed to get NuGet.config from source-build. Ignoring Exception:");
+                    Console.WriteLine(exception.Message);
+                    Console.WriteLine(exception.StackTrace);
+                }
+
+                return await nuget.GenerateNuGetConfig(urls, nugetConfig);
             }
 
             return null;

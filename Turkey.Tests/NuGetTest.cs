@@ -61,7 +61,7 @@ namespace Turkey.Tests
         [InlineData(new string[] { }, "")]
         [InlineData(new string[] { "foo" }, "<add key=\"0\" value=\"foo\" />")]
         [InlineData(new string[] { "foo" , "bar"}, "<add key=\"0\" value=\"foo\" /> <add key=\"1\" value=\"bar\" />")]
-        public void NuGetConfigIsGeneratedCorrectly(string[] urls, string feedParts)
+        public async Task NuGetConfigIsGeneratedCorrectly(string[] urls, string feedParts)
         {
             using (var http = new HttpClient())
             {
@@ -70,7 +70,7 @@ namespace Turkey.Tests
                 var expectedConfig = "<?xml version=\"1.0\" encoding=\"utf-8\"?> <configuration> <packageSources> " + feedParts + " </packageSources> </configuration>";
                 var cleanedExpectedConfig = Regex.Replace(expectedConfig, @"\s+", " ");
 
-                var actualConfig = nuget.GenerateNuGetConfig(urls.ToList());
+                var actualConfig = await nuget.GenerateNuGetConfig(urls.ToList());
                 var cleanedActualConfig = Regex.Replace(actualConfig, @"\s+", " ");
 
                 Assert.Equal(cleanedExpectedConfig, cleanedActualConfig);
