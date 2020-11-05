@@ -35,25 +35,40 @@ namespace Turkey
             return found;
         }
 
-        public string GenerateNuGetConfig(List<string> urls)
+        public async Task<string> GenerateNuGetConfig(List<string> urls, string nugetConfig = null)
         {
-            var sourceParts = new List<string>(urls.Count);
-            for (int i = 0; i < urls.Count; i++)
+            if( !urls.Any() && nugetConfig == null )
+                throw new ArgumentNullException();
+
+            string sources = null;
+            if( urls.Any() )
             {
-                sourceParts.Add($"<add key=\"{i}\" value=\"{urls[i]}\" />");
-            }
-            var sources = string.Join(Environment.NewLine + "    ", sourceParts);
-            if (!string.IsNullOrEmpty(sources))
-            {
-                sources = "    " + sources + Environment.NewLine;
+                var sourceParts = new List<string>(urls.Count);
+                for( int i = 0; i < urls.Count; i++ )
+                {
+                    sourceParts.Add($"<add key=\"{i}\" value=\"{urls[i]}\" />");
+                }
+
+                sources = string.Join("\n    ", sourceParts);
+                if( !string.IsNullOrEmpty(sources) )
+                {
+                    sources = $"    {sources}\n";
+                }
             }
 
-            return "<?xml version=\"1.0\" encoding=\"utf-8\"?>" + Environment.NewLine +
-                "<configuration>" + Environment.NewLine +
-                "  <packageSources>" + Environment.NewLine +
-                sources +
-                "  </packageSources>" + Environment.NewLine +
-                "</configuration>";
+            if( string.IsNullOrWhiteSpace(nugetConfig) )
+            {
+                nugetConfig = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                              "<configuration>\n" +
+                              "  <packageSources>\n" +
+                              "  </packageSources>\n" +
+                              "</configuration>";
+            }
+
+            if( !string.IsNullOrWhiteSpace(sources) )
+                nugetConfig = nugetConfig.Replace("</packageSources>", sources + "</packageSources>");
+
+            return nugetConfig;
         }
 
     }
