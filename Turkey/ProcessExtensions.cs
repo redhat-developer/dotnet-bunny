@@ -33,6 +33,7 @@ namespace Turkey
             process.BeginErrorReadLine();
 
             var tcs = new TaskCompletionSource<bool>();
+            int completionOwner = 0;
             CancellationTokenRegistration ctr = default;
             ctr = token.Register(() => CompleteTask(cancel: true));
             process.Exited += delegate { CompleteTask(cancel: false); };
@@ -44,25 +45,40 @@ namespace Turkey
 
             void CompleteTask(bool cancel)
             {
+                // Only one caller can complete the task.
+                if (Interlocked.CompareExchange(ref completionOwner, 1, 0) == 1)
+                {
+                    return;
+                }
+
                 if (cancel)
                 {
-                    bool completed = tcs.TrySetCanceled();
-
-                    if (completed && !process.HasExited)
+                    try
                     {
-                        process.Kill(); ;
+                        process.Kill();
                     }
+                    catch // Before .NET 3, Kill can throw if the process has terminated in the meanwhile.
+                    { }
+
                 }
                 else
                 {
                     process.WaitForExit();  // Wait until we've received all output.
                     ctr.Dispose();          // Don't root objects via the CancellationToken.
-
-                    tcs.TrySetResult(true);
                 }
 
                 process.OutputDataReceived -= outputHandler;
                 process.ErrorDataReceived -= errorHandler;
+
+                // We're done using the process, now it's safe to complete the Task.
+                if (cancel)
+                {
+                    tcs.SetCanceled();
+                }
+                else
+                {
+                    tcs.SetResult(true);
+                }
             }
         }
     }
