@@ -161,38 +161,25 @@ Some notes for writing tests:
 
    Signing requires a gpg key. If you don't have one, you can omit `--sign`.
 
-2. Use `make publish` to genereate executables ready for releasing
-
-   The generated executables are placed in the top-level `bin` directory.  They
-   are stand-alone and include correct version information:
-
-       $ make publish
-       $ ./bin/turkey --version
-       4-df8f520
-
-   Only build the binaries after tagging. That makes sure the version string in
-   the binary is updated correctly.
-
-3. Push the tags to GitHub
+2. Push the tags to GitHub
 
        $ git push --tags remote-name
 
-4. Create a release in GitHub
+3. GitHub Actions will create a draft release corresponding to the tag.
 
-   1. Go to https://github.com/redhat-developer/dotnet-bunny/releases/new
+   It will also attach the `turkey` and `turkey-$arch` binaries to the release.
 
-   2. Select the tag created in step 1
+   Many tools use `wget
+   https://github.com/redhat-developer/dotnet-bunny/releases/latest/download/turkey`
+   to get the latest release. This keeps them working.
 
-   3. Name the release along the lines of "Version #" where, replacing "#" with
-      the actual version
+4. Publish the release in GitHub
 
-   3. Write release notes
+   1. Select the tag created in step 1
 
-   4. Attach the `turkey` binary from step 2 to the GitHub release
+   2. Write release notes
 
-      Many tools use `wget
-      https://github.com/redhat-developer/dotnet-bunny/releases/latest/download/turkey`
-      to get the latest release. Don't break them.
+   3. Publish the release
 
 # TODO
 
