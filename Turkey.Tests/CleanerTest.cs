@@ -11,7 +11,7 @@ namespace Turkey.Tests
         [Fact]
         public void StarAtEndIsExpandedCorrectly()
         {
-            var temp = Environment.GetEnvironmentVariable("XDG_RUNTIME_DIR");
+            var temp = Environment.GetEnvironmentVariable("XDG_RUNTIME_DIR") ?? "/tmp/";
             var testRoot = Path.Combine(temp, "turkey-test-" + new Random().Next());
             Directory.CreateDirectory(testRoot);
 
