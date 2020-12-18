@@ -1,0 +1,104 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  unit-test:
+    name: Verify unit tests pass
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        container_image:
+          - fedora:33
+          - fedora:32
+          - fedora:rawhide
+          - registry.access.redhat.com/ubi8
+        dotnet_version:
+          - "3.1"
+
+    container:
+      image: ${{ matrix.container_image }}
+
+    steps:
+      - name: Install build dependencies
+        timeout-minutes: 5
+        run: |
+          dnf install -y dotnet-sdk-${{ matrix.dotnet_version }} make
+
+      - uses: actions/checkout@v2
+
+      - name: Run tests
+        run: |
+          set -euo pipefail
+          make check
+
+  reproducers:
+    name: Verify reproducers work
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        container_image:
+          - fedora:33
+          - fedora:32
+          - fedora:rawhide
+          - registry.access.redhat.com/ubi8
+        dotnet_version:
+          - "3.1"
+
+    container:
+      image: ${{ matrix.container_image }}
+
+    steps:
+      - name: Install build dependencies
+        timeout-minutes: 5
+        run: |
+          set -euo pipefail
+          dnf install -y dotnet-sdk-${{ matrix.dotnet_version }} git make
+
+      # We need to fetch the tags, so 'git tag' in 'make publish' below works
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Build test runner
+        timeout-minutes: 2
+        run: |
+          set -euo pipefail
+          make publish
+
+      - name: Get reproducers
+        run: |
+          set -euo pipefail
+          git clone https://github.com/redhat-developer/dotnet-regular-tests/
+
+      - name: Install Test dependencies
+        timeout-minutes: 2
+        run: |
+          dnf install -y python3 wget $(grep '^Dependencies: ' dotnet-regular-tests/README.md | cut -d: -f2-) --skip-broken
+
+      - name: Run reproducers
+        run: |
+          set -euo pipefail
+          ### HACK: Filter tests that can't pass in Containers
+          rm -r dotnet-regular-tests/debugging-sos-lldb* dotnet-regular-tests/createdump-aspnet
+
+          ### HACK: UBI 8 is missing strace and bash-completion packages for these tests
+          if [[ ${{ matrix.container_image }} == *ubi8* ]] ; then
+              rm -r dotnet-regular-tests/telemetry-is-off-by-default dotnet-regular-tests/bash-completion
+          fi
+
+          ./bin/turkey dotnet-regular-tests -v
+
+      - name: Show Logs
+        if: ${{ always() }}
+        run: |
+          set -euo pipefail
+          find -iname '*.log' -exec echo {} \; -exec cat {} \;
