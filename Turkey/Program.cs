@@ -13,40 +13,25 @@ namespace Turkey
 {
     public class Program
     {
-        public static readonly Option verboseOption = new Option(
+        public static readonly Option<bool> verboseOption = new Option<bool>(
             new string[] { "--verbose", "-v" },
-            "Show verbose output")
-        {
-            Argument = new Argument<bool>()
-        };
+            "Show verbose output");
 
-        public static readonly Option compatibleOption = new Option(
+        public static readonly Option<bool> compatibleOption = new Option<bool>(
             new string[] { "--compatible", "-c" },
-            "Make output compatible with dotnet-bunny")
-        {
-            Argument = new Argument<bool>()
-        };
+            "Make output compatible with dotnet-bunny");
 
-        public static readonly Option logDirectoryOption = new Option(
+        public static readonly Option<string> logDirectoryOption = new Option<string>(
             new string[] { "--log-directory", "-l" },
-            "Set directory for writing log files")
-        {
-            Argument = new Argument<string>(),
-        };
+            "Set directory for writing log files");
 
-        public static readonly Option additionalFeedOption = new Option(
+        public static readonly Option<string> additionalFeedOption = new Option<string>(
             new string[] { "--additional-feed", "-s" },
-            "Additional nuget repository feed")
-        {
-            Argument = new Argument<string>(),
-        };
+            "Additional nuget repository feed");
 
-        public static readonly Option timeoutOption = new Option(
+        public static readonly Option<int> timeoutOption = new Option<int>(
             new string[] { "--timeout", "-t" },
-            "Set the timeout duration for test in seconds")
-        {
-            Argument = new Argument<int>()
-        };
+            "Set the timeout duration for test in seconds");
 
         public static async Task<int> Run(string testRoot,
                                           bool verbose,
