@@ -1,4 +1,4 @@
-FRAMEWORK:=netcoreapp3.1
+FRAMEWORK:=net6.0
 CONFIGURATION:=Release
 RUNTIME:=linux-$(subst aarch64,arm64,$(subst x86_64,x64,$(shell uname -m)))
 
@@ -23,7 +23,6 @@ publish:
 	 -r $(RUNTIME) \
 	 -p:VersionPrefix=$$(cat ../GIT_TAG_VERSION) \
 	 -p:VersionSuffix=$$(cat ../GIT_COMMIT_ID) \
-	 -p:PublishSingleFile=true \
 	 -p:PublishTrimmed=true)
 	mkdir -p bin
 	cp -a ./Turkey/bin/$(CONFIGURATION)/$(FRAMEWORK)/$(RUNTIME)/publish/Turkey bin/turkey
