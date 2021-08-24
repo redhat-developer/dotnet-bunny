@@ -165,6 +165,10 @@ Some notes for writing tests:
 
        $ git push --tags remote-name
 
+       OR, better:
+
+       $ git push remote-name tag-name
+
 3. GitHub Actions will create a draft release corresponding to the tag.
 
    It will also attach the `turkey` and `turkey-$arch` binaries to the release.
