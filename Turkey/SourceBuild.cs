@@ -52,7 +52,7 @@ namespace Turkey
             }
             catch( HttpRequestException e )
             {
-                Console.WriteLine($"WARNING: {e.Message}");
+                Console.WriteLine($"WARNING: {e.ToString()}");
             }
 
             return nugetConfig;

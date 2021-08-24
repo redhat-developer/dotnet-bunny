@@ -150,8 +150,7 @@ namespace Turkey
                 catch( HttpRequestException exception )
                 {
                     Console.WriteLine("WARNING: failed to get ProdCon url. Ignoring Exception:");
-                    Console.WriteLine(exception.Message);
-                    Console.WriteLine(exception.StackTrace);
+                    Console.WriteLine(exception.ToString());
                 }
 
                 string nugetConfig = null;
@@ -162,11 +161,13 @@ namespace Turkey
                 catch( HttpRequestException exception )
                 {
                     Console.WriteLine("WARNING: failed to get NuGet.config from source-build. Ignoring Exception:");
-                    Console.WriteLine(exception.Message);
-                    Console.WriteLine(exception.StackTrace);
+                    Console.WriteLine(exception.ToString());
                 }
 
-                return await nuget.GenerateNuGetConfig(urls, nugetConfig);
+                if (urls.Any() || nugetConfig != null)
+                {
+                    return await nuget.GenerateNuGetConfig(urls, nugetConfig);
+                }
             }
 
             return null;
