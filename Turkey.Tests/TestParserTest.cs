@@ -12,7 +12,7 @@ namespace Turkey.Tests
         public void DisabledTestShouldBeSkipped()
         {
             TestParser parser = new TestParser();
-            SystemUnderTest system = new SystemUnderTest(null, null, null);
+            SystemUnderTest system = new SystemUnderTest(null, null, null, null);
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = false,
@@ -41,7 +41,8 @@ namespace Turkey.Tests
             SystemUnderTest system = new SystemUnderTest(
                 runtimeVersion: Version.Parse(version),
                 sdkVersion: null,
-                platformIds: new List<string>());
+                platformIds: new List<string>(),
+                environmentVariables: null);
 
             TestDescriptor test = new TestDescriptor()
             {
@@ -75,7 +76,8 @@ namespace Turkey.Tests
             SystemUnderTest system = new SystemUnderTest(
                 runtimeVersion: Version.Parse(version),
                 sdkVersion: null,
-                platformIds: new List<string>());
+                platformIds: new List<string>(),
+                environmentVariables: null);
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = true,
@@ -111,7 +113,8 @@ namespace Turkey.Tests
             SystemUnderTest system = new SystemUnderTest(
                 runtimeVersion: Version.Parse(version),
                 sdkVersion: null,
-                platformIds: new List<string>());
+                platformIds: new List<string>(),
+                environmentVariables: null);
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = true,
@@ -132,7 +135,8 @@ namespace Turkey.Tests
             SystemUnderTest system = new SystemUnderTest(
                 runtimeVersion: Version.Parse("2.1"),
                 sdkVersion: null,
-                platformIds: new string[] { "linux" }.ToList());
+                platformIds: new string[] { "linux" }.ToList(),
+                environmentVariables: null);
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = true,
@@ -159,7 +163,8 @@ namespace Turkey.Tests
             SystemUnderTest system = new SystemUnderTest(
                 runtimeVersion: Version.Parse("2.1"),
                 sdkVersion: null,
-                platformIds: currentPlatforms.ToList());
+                platformIds: currentPlatforms.ToList(),
+                environmentVariables: null);
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = true,
@@ -183,7 +188,8 @@ namespace Turkey.Tests
             SystemUnderTest system = new SystemUnderTest(
                 runtimeVersion: Version.Parse("3.1"),
                 sdkVersion: Version.Parse(sdkVersion),
-                platformIds: new List<string>());
+                platformIds: new List<string>(),
+                environmentVariables: null);
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = true,

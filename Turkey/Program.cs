@@ -100,14 +100,19 @@ namespace Turkey
             List<string> platformIds = new PlatformId().CurrentIds;
             Console.WriteLine($"Current platform is: {string.Join(", ", platformIds)}");
 
+            var sanitizer = new EnvironmentVariableSanitizer();
+            var envVars = sanitizer.SanitizeCurrentEnvironmentVariables();
+
             SystemUnderTest system = new SystemUnderTest(
                 runtimeVersion: dotnet.LatestRuntimeVersion,
                 sdkVersion: dotnet.LatestSdkVersion,
-                platformIds: platformIds
+                platformIds: platformIds,
+                environmentVariables: envVars
             );
 
             Version packageVersion = dotnet.LatestRuntimeVersion;
             string nuGetConfig = await GenerateNuGetConfigIfNeededAsync(additionalFeed, packageVersion);
+
 
             TestRunner runner = new TestRunner(
                 cleaner: cleaner,

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -36,6 +37,13 @@ namespace Turkey
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
             };
+
+            startInfo.EnvironmentVariables.Clear();
+            foreach (var (key, value) in SystemUnderTest.EnvironmentVariables)
+            {
+                startInfo.EnvironmentVariables.Add(key, value);
+            }
+
             standardOutputWriter.WriteLine($"Executing {startInfo.FileName} with arguments {startInfo.Arguments} in working directory {startInfo.WorkingDirectory}");
             using (Process p = Process.Start(startInfo))
             {
