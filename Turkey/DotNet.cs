@@ -93,7 +93,7 @@ namespace Turkey
             }
         }
 
-        public static async Task<ProcessResult> BuildAsync(DirectoryInfo workingDirectory, CancellationToken token)
+        public static async Task<ProcessResult> BuildAsync(DirectoryInfo workingDirectory, IReadOnlyDictionary<string, string> environment, CancellationToken token)
         {
             var arguments = new string[]
             {
@@ -102,21 +102,21 @@ namespace Turkey
                 "-p:UseSharedCompilation=false",
                 "-m:1",
             };
-            var result = await RunDotNetCommandAsync(workingDirectory, arguments, token);
+            var result = await RunDotNetCommandAsync(workingDirectory, arguments, environment, token);
             return result;
         }
 
-        public static async Task<ProcessResult> RunAsync(DirectoryInfo workingDirectory, CancellationToken token)
+        public static async Task<ProcessResult> RunAsync(DirectoryInfo workingDirectory, IReadOnlyDictionary<string, string> environment, CancellationToken token)
         {
-            return await RunDotNetCommandAsync(workingDirectory, new string[] { "run", "--no-restore", "--no-build"} , token);
+            return await RunDotNetCommandAsync(workingDirectory, new string[] { "run", "--no-restore", "--no-build"} , environment, token);
         }
 
-        public static async Task<ProcessResult> TestAsync(DirectoryInfo workingDirectory, CancellationToken token)
+        public static async Task<ProcessResult> TestAsync(DirectoryInfo workingDirectory, IReadOnlyDictionary<string, string> environment, CancellationToken token)
         {
-            return await RunDotNetCommandAsync(workingDirectory, new string[] { "test", "--no-restore", "--no-build"} , token);
+            return await RunDotNetCommandAsync(workingDirectory, new string[] { "test", "--no-restore", "--no-build"} , environment, token);
         }
 
-        private static async Task<ProcessResult> RunDotNetCommandAsync(DirectoryInfo workingDirectory, string[] commands, CancellationToken token)
+        private static async Task<ProcessResult> RunDotNetCommandAsync(DirectoryInfo workingDirectory, string[] commands, IReadOnlyDictionary<string, string> environment, CancellationToken token)
         {
             var arguments = string.Join(" ", commands);
             ProcessStartInfo startInfo = new ProcessStartInfo()
@@ -127,6 +127,12 @@ namespace Turkey
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
             };
+
+            startInfo.EnvironmentVariables.Clear();
+            foreach (var (key, value) in environment)
+            {
+                startInfo.EnvironmentVariables.Add(key, value);
+            }
 
             using (var process = Process.Start(startInfo))
             {
