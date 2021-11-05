@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,12 +48,12 @@ namespace Turkey
 
         private async Task<PartialResult> BuildProjectAsync(CancellationToken token)
         {
-            return ProcessResultToPartialResult(await DotNet.BuildAsync(Directory, token));
+            return ProcessResultToPartialResult(await DotNet.BuildAsync(Directory, SystemUnderTest.EnvironmentVariables, token));
         }
 
         private async Task<PartialResult> TestProjectAsync(CancellationToken token)
         {
-            return ProcessResultToPartialResult(await DotNet.TestAsync(Directory, token));
+            return ProcessResultToPartialResult(await DotNet.TestAsync(Directory, SystemUnderTest.EnvironmentVariables, token));
         }
 
         private static PartialResult ProcessResultToPartialResult(DotNet.ProcessResult result)

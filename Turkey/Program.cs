@@ -100,14 +100,19 @@ namespace Turkey
             List<string> platformIds = new PlatformId().CurrentIds;
             Console.WriteLine($"Current platform is: {string.Join(", ", platformIds)}");
 
+            var sanitizer = new EnvironmentVariableSanitizer();
+            var envVars = sanitizer.SanitizeCurrentEnvironmentVariables();
+
             SystemUnderTest system = new SystemUnderTest(
                 runtimeVersion: dotnet.LatestRuntimeVersion,
                 sdkVersion: dotnet.LatestSdkVersion,
-                platformIds: platformIds
+                platformIds: platformIds,
+                environmentVariables: envVars
             );
 
             Version packageVersion = dotnet.LatestRuntimeVersion;
             string nuGetConfig = await GenerateNuGetConfigIfNeededAsync(additionalFeed, packageVersion);
+
 
             TestRunner runner = new TestRunner(
                 cleaner: cleaner,
@@ -150,8 +155,7 @@ namespace Turkey
                 catch( HttpRequestException exception )
                 {
                     Console.WriteLine("WARNING: failed to get ProdCon url. Ignoring Exception:");
-                    Console.WriteLine(exception.Message);
-                    Console.WriteLine(exception.StackTrace);
+                    Console.WriteLine(exception.ToString());
                 }
 
                 string nugetConfig = null;
@@ -162,11 +166,13 @@ namespace Turkey
                 catch( HttpRequestException exception )
                 {
                     Console.WriteLine("WARNING: failed to get NuGet.config from source-build. Ignoring Exception:");
-                    Console.WriteLine(exception.Message);
-                    Console.WriteLine(exception.StackTrace);
+                    Console.WriteLine(exception.ToString());
                 }
 
-                return await nuget.GenerateNuGetConfig(urls, nugetConfig);
+                if (urls.Any() || nugetConfig != null)
+                {
+                    return await nuget.GenerateNuGetConfig(urls, nugetConfig);
+                }
             }
 
             return null;
