@@ -14,12 +14,12 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: centos:8
+      image: registry.access.redhat.com/ubi8
 
     steps:
       - name: Install dependencies
         run: |
-          dnf install -y dotnet-sdk-3.1 git make
+          dnf install -y dotnet-sdk-6.0 git make
 
       - uses: actions/checkout@v2
 
