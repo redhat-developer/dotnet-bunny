@@ -22,9 +22,11 @@ publish:
 	 dotnet publish \
 	 -c $(CONFIGURATION) \
 	 -r $(RUNTIME) \
+	 --self-contained true \
 	 -p:VersionPrefix=$$(cat ../GIT_TAG_VERSION) \
 	 -p:VersionSuffix=$$(cat ../GIT_COMMIT_ID) \
 	 -p:PublishSingleFile=$(SINGLE_FILE) \
+	 -p:IncludeAllContentForSelfExtract=$(SINGLE_FILE) \
 	 -p:PublishTrimmed=true)
 	mkdir -p bin
 	cp -a ./Turkey/bin/$(CONFIGURATION)/$(FRAMEWORK)/$(RUNTIME)/publish/Turkey bin/turkey
