@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          dnf install -y dotnet-sdk-6.0 git make
+          dnf install -y dotnet-sdk-3.1 git make
 
       - uses: actions/checkout@v2
 
@@ -35,7 +35,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: release-binaries
-          path: bin/turkey
+          path: turkey.tar.gz
 
   release:
     name: Create Release
@@ -71,16 +71,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: turkey
-          asset_name: turkey
-          asset_content_type: application/octet-stream
-
-      - name: Upload Release Asset (x86_64)
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: turkey
-          asset_name: turkey-x86_64
-          asset_content_type: application/octet-stream
+          asset_path: turkey.tar.gz
+          asset_name: turkey.tar.gz
+          asset_content_type: application/gzip
