@@ -1,13 +1,12 @@
-FRAMEWORK:=net6.0
+FRAMEWORK:=netcoreapp3.1
 CONFIGURATION:=Release
 ARCH:=$(subst aarch64,arm64,$(subst x86_64,x64,$(shell uname -m)))
 RUNTIME:=linux-$(ARCH)
-SINGLE_FILE:=$(if $(filter-out s390x,$(ARCH)),true,false)
 
 all: publish
 
 check:
-	dotnet test -c Release --verbosity detailed Turkey.Tests
+	dotnet test -f $(FRAMEWORK) -c Release --verbosity detailed Turkey.Tests
 
 run-samples:
 	rm -rf ~/.nuget.orig && mv ~/.nuget ~/.nuget.orig && mkdir -p ~/.nuget
@@ -21,21 +20,19 @@ publish:
 	cat GIT_TAG_VERSION
 	(cd Turkey; \
 	 dotnet publish \
+	 -f $(FRAMEWORK) \
 	 -c $(CONFIGURATION) \
-	 -r $(RUNTIME) \
-	 --self-contained true \
 	 -p:VersionPrefix=$$(cat ../GIT_TAG_VERSION) \
 	 -p:VersionSuffix=$$(cat ../GIT_COMMIT_ID) \
-	 -p:PublishSingleFile=$(SINGLE_FILE) \
-	 -p:IncludeAllContentForSelfExtract=$(SINGLE_FILE) \
-	 -p:PublishTrimmed=true)
-	mkdir -p bin
-	cp -a ./Turkey/bin/$(CONFIGURATION)/$(FRAMEWORK)/$(RUNTIME)/publish/Turkey bin/turkey
+	 -o $$(readlink -f $$(pwd)/../turkey))
+	tar czf turkey.tar.gz turkey/
 
 clean:
+	rm -f GIT_COMMIT_ID GIT_TAG_VERSION
 	rm -rf Turkey/bin Turkey/obj
 	rm -rf Turkey.Tests/bin Turkey.Tests/obj
 	rm -rf bin
+	rm -rf turkey turkey.tar.gz
 	find -iname '*.log' -delete
 
 fix-line-endings:
