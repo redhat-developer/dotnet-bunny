@@ -1,12 +1,18 @@
 # Turkey
 
 This is a test runner for running integration/regression tests for
-.NET Core.
+.NET and .NET Core on Linux.
 
 It uses the same format for identifying, selecting and running tests
 as [dotnet-bunny](https://github.com/redhat-developer/dotnet-bunny/).
 
 It produces results in various forms, including a junit-compatible xml file.
+
+# Supported Platforms and Architectures
+
+This is fully usable on GNU libc-based Linux distributions. This is
+used by Red Hat to run .NET tests on Fedora and RHEL on multiple
+architectures including 64-bit ARM, Intel x86_64 and IBM Z.
 
 # Building
 
@@ -18,18 +24,19 @@ Use the following command to build the `turkey` program and place it in the
 # Running Tests
 
 If you have a directory containing tests, you can run them via
-invoking the `turkey` shell script. For example:
+running `dotnet turkey/Turkey.dll`. For example:
 
-    ./bin/turkey Samples
+    $ dotnet turkey/Turkey.dll Samples
     BashTestSpecificToDotNet2x                                  [PASS]
     BashTestSpecificToDotNet50                                  [SKIP]
     DisabledBashTest                                            [SKIP]
     ...
 
-See `turkey --help` for more information on how to select and run
-tests and how to show the test output.
+See `dotnet turkey/Turkey.dll --help` for more information on how to
+select and run tests and how to show the test output.
 
-To get output compatible with `dotnet-bunny`, use `turkey --compatible`
+To get output compatible with (the old) `dotnet-bunny`, use `dotnet
+turkey/Turkey.dll --compatible`
 
 A real example of a test-suite to use with this framework is:
 https://github.com/redhat-developer/dotnet-regular-tests/
@@ -51,9 +58,11 @@ a `test.json` file. An example of this file:
       "type": "xunit",
       "cleanup": true,
       "ignoredRIDs": [
-        "fedora"
-        "fedora29"
-        "rhel7"
+        "fedora",
+        "fedora.29",
+        "fedora.34-s390x",
+        "rhel.7",
+        "rhel.7-arm64"
        ]
     }
 
@@ -127,6 +136,9 @@ the following keys:
   - `["rhel.7"]` or `["rhel7"]`: skip this test on RHEL 7, but not on RHEL 8, or another RHEL version
   - `["rhel.8-arm64"]`: skip this test on RHEL 8 on arm64
 
+  See https://docs.microsoft.com/en-us/dotnet/core/rid-catalog for
+  more details. Not all the RIDs are fully supported yet.
+
 ## Notes on Writing Tests
 
 Some notes for writing tests:
@@ -171,10 +183,10 @@ Some notes for writing tests:
 
 3. GitHub Actions will create a draft release corresponding to the tag.
 
-   It will also attach the `turkey` and `turkey-$arch` binaries to the release.
+   It will also attach the `turkey.tar.gz` release tarball to the release.
 
    Many tools use `wget
-   https://github.com/redhat-developer/dotnet-bunny/releases/latest/download/turkey`
+   https://github.com/redhat-developer/dotnet-bunny/releases/latest/download/turkey.tar.gz`
    to get the latest release. This keeps them working.
 
 4. Publish the release in GitHub
