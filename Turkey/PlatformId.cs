@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace Turkey
 {
@@ -11,37 +13,53 @@ namespace Turkey
         public List<string> CurrentIds
         {
             // TODO make this async?
-            get => GetPlatformIdsFromOsRelease(File.ReadAllLines("/etc/os-release"));
+            get => ComputePlatformIds(File.ReadAllLines("/etc/os-release"), GetLddVersion());
         }
 
-        public List<string> GetPlatformIdsFromOsRelease(string[] lines)
+        public List<string> ComputePlatformIds(string[] osReleaseLines, string lddVersionOutput)
         {
             string arch = Enum.GetName(typeof(Architecture), RuntimeInformation.OSArchitecture).ToLowerInvariant();
-            return GetPlatformIdsFromOsRelease(lines, arch);
+            return ComputePlatformIds(osReleaseLines, arch, lddVersionOutput);
         }
 
-        public List<string> GetPlatformIdsFromOsRelease(string[] lines, string architecture)
+        public List<string> ComputePlatformIds(string[] osReleaseLines, string architecture, string lddVersionOutput)
         {
-            var id = GetValue("ID", lines);
+            var id = GetValue("ID", osReleaseLines);
             id = Unquote(id);
-            var versionId = GetValue("VERSION_ID", lines);
+            var versionId = GetValue("VERSION_ID", osReleaseLines);
             versionId = Unquote(versionId);
-            if (id.Equals("rhel", StringComparison.Ordinal))
+            var needsLastVersionRemoved = new string[] { "almalinux", "alpine", "ol", "rhel", "rocky" }
+                .Any(os => id.Equals(os, StringComparison.Ordinal));
+            if (needsLastVersionRemoved)
             {
-                int indexOfDot = versionId.IndexOf(".", StringComparison.Ordinal);
+                int indexOfDot = versionId.LastIndexOf(".", StringComparison.Ordinal);
                 if (indexOfDot > 0)
                 {
                     versionId = versionId.Substring(0, indexOfDot);
                 }
             }
-            var platforms = new string[] {
+            var platforms = new List<string>()
+            {
                 "linux",
                 "linux" + "-" + architecture,
                 id,
                 id + "-" + architecture,
                 id + versionId,
                 id + "." + versionId,
-                id + "." + versionId + "-" + architecture };
+                id + "." + versionId + "-" + architecture
+            };
+
+            bool isMusl = lddVersionOutput.Contains("musl", StringComparison.Ordinal);
+
+            if (isMusl)
+            {
+                platforms.AddRange(new []
+                {
+                    "linux-musl",
+                    "linux-musl" + "-" + architecture,
+                });
+
+            }
             return platforms.ToList();
         }
 
@@ -61,6 +79,21 @@ namespace Turkey
             }
 
             return text;
+        }
+
+        internal string GetLddVersion()
+        {
+            using (Process p = new Process())
+            {
+                p.StartInfo.FileName = "ldd";
+                p.StartInfo.Arguments = "--version";
+                p.StartInfo.RedirectStandardError = true;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.Start();
+                p.WaitForExit();
+
+                return string.Concat(p.StandardOutput.ReadToEnd(), p.StandardError.ReadToEnd());
+            }
         }
     }
 }

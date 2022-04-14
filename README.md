@@ -10,9 +10,13 @@ It produces results in various forms, including a junit-compatible xml file.
 
 # Supported Platforms and Architectures
 
-This is fully usable on GNU libc-based Linux distributions. This is
-used by Red Hat to run .NET tests on Fedora and RHEL on multiple
-architectures including 64-bit ARM, Intel x86_64 and IBM Z.
+This is fully usable on GNU libc-based and musl libc-based Linux distributions.
+
+This is used by Red Hat to run .NET tests on Fedora and RHEL on multiple
+architectures including 64-bit ARM (`aarch64`), Intel x86_64 (`x86_64`) and IBM
+Z (`s390x`).
+
+It's also being used by other distributions, such as Alpine.
 
 # Building
 

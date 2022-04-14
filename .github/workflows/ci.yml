@@ -14,8 +14,11 @@ jobs:
       fail-fast: false
       matrix:
         container_image:
+          - docker.io/library/alpine:edge
+          - docker.io/library/alpine:latest
           - registry.fedoraproject.org/fedora:34
           - registry.fedoraproject.org/fedora:35
+          - registry.fedoraproject.org/fedora:36
           - registry.fedoraproject.org/fedora:rawhide
           - registry.access.redhat.com/ubi8
         dotnet_version:
@@ -24,6 +27,8 @@ jobs:
           - "6.0"
         exclude:
           - container_image: registry.fedoraproject.org/fedora:rawhide
+            dotnet_version: "5.0"
+          - container_image: registry.fedoraproject.org/fedora:36
             dotnet_version: "5.0"
 
     container:
@@ -34,13 +39,36 @@ jobs:
       - name: Install build dependencies
         timeout-minutes: 5
         run: |
-          dnf install -y dotnet-sdk-${{ matrix.dotnet_version }} make
+          set -euo pipefail
+          if command -v dnf; then
+            dnf install -y dotnet-sdk-${{ matrix.dotnet_version }} git make
+          elif command -v apk; then
+            apk add bash curl git icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ make zlib
+            curl -sSLO https://dot.net/v1/dotnet-install.sh
+            chmod +x ./dotnet-install.sh
+            ./dotnet-install.sh --channel ${{ matrix.dotnet_version }}
+          fi
 
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Sanity check
+        run: |
+          set -euo pipefail
+          PATH=$PATH:$HOME/.dotnet/
+
+          git config --global safe.directory "$GITHUB_WORKSPACE"
+
+          make
+          mkdir -p no-reproducers
+          dotnet turkey/Turkey.dll no-reproducers
 
       - name: Run tests
         run: |
           set -euo pipefail
+          PATH=$PATH:$HOME/.dotnet/
+
           make check
 
   reproducers:
