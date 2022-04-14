@@ -10,7 +10,7 @@ check:
 
 run-samples:
 	rm -rf ~/.nuget.orig && mv ~/.nuget ~/.nuget.orig && mkdir -p ~/.nuget
-	cd Samples && test -f ../bin/turkey && (../bin/turkey || true)
+	cd Samples && test -f ../turkey/Turkey.dll && (dotnet ../turkey/Turkey.dll || true)
 	rm -rf ~/.nuget && mv ~/.nuget.orig ~/.nuget
 
 publish:
