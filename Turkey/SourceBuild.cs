@@ -16,19 +16,31 @@ namespace Turkey
             this._client = client;
         }
 
-        public string GetBranch(Version version)
+        public string GetBranchContentUrl(Version version)
         {
-            // FIXME: hack to treat 5.0 as special for now
-            if (version.Major == 5)
+            string url;
+            if (version.Major <= 3)
             {
-                return "master";
+                var branchName = "release/" + version.MajorMinor;
+                url = $"https://raw.githubusercontent.com/dotnet/source-build/{branchName}/";
             }
-            return "release/" + version.MajorMinor;
+            else
+            {
+                var branchName = "release/" + version.MajorMinor + ".1xx";
+                url = $"https://raw.githubusercontent.com/dotnet/installer/{branchName}/";
+            }
+
+            return url;
         }
 
         public async Task<string> GetProdConFeedAsync(Version version)
         {
-            var url = $"https://raw.githubusercontent.com/dotnet/source-build/{GetBranch(version)}/ProdConFeed.txt";
+            if (version.Major > 4)
+            {
+                throw new ArgumentException("No prodcon for .NET 5 or later");
+            }
+
+            var url = GetBranchContentUrl(version) + "ProdConFeed.txt";
             var feedUrl = await _client.GetStringAsync(url);
 
             using(var response = await _client.GetAsync(feedUrl))
@@ -43,7 +55,7 @@ namespace Turkey
 
         public async Task<string> GetNuGetConfigAsync(Version version)
         {
-            string url = $"https://raw.githubusercontent.com/dotnet/source-build/{GetBranch(version)}/NuGet.config";
+            string url = GetBranchContentUrl(version) + "NuGet.config";
 
             string nugetConfig = null;
             try
