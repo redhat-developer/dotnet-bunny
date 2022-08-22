@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -9,15 +10,15 @@ namespace Turkey.Tests
 {
     public class SourceBuildTest
     {
-        private static readonly string FAKE_FEED = "https://myget.org/my/secret/99.0/feed.json";
+        private static readonly string FAKE_FEED = "https://myget.org/my/secret/3.1/feed.json";
 
-        public class MockHandler : HttpMessageHandler
+        public class ProdConHandler : HttpMessageHandler
         {
             protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage message, CancellationToken token)
             {
                 if (message.Method == HttpMethod.Get)
                 {
-                    if (message.RequestUri.AbsoluteUri.Equals("https://raw.githubusercontent.com/dotnet/source-build/release/99.0/ProdConFeed.txt"))
+                    if (message.RequestUri.AbsoluteUri.Equals("https://raw.githubusercontent.com/dotnet/source-build/release/3.1/ProdConFeed.txt"))
                     {
                         return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
                         {
@@ -38,16 +39,35 @@ namespace Turkey.Tests
             }
         }
 
+        public class NoProdConHandler : HttpMessageHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage message, CancellationToken token)
+            {
+                Assert.True(false);
+                return null;
+            }
+        }
+
         [Fact]
         public async Task VerifyProdConFeedIsLookedUpAndThenTheFeedIsVerifiedToResolve()
         {
-            var messageHandler = new MockHandler();
+            var messageHandler = new ProdConHandler();
             var client = new HttpClient(messageHandler);
             var sourceBuild = new SourceBuild(client);
 
-            var feed = await sourceBuild.GetProdConFeedAsync(Version.Parse("99.0"));
+            var feed = await sourceBuild.GetProdConFeedAsync(Version.Parse("3.1"));
 
             Assert.Equal(FAKE_FEED, feed);
+        }
+
+        [Fact]
+        public async Task VerifyProdConFeedIsNotUsedForNewReleases()
+        {
+            var messageHandler = new NoProdConHandler();
+            var client = new HttpClient(messageHandler);
+            var sourceBuild = new SourceBuild(client);
+
+            await Assert.ThrowsAsync<ArgumentException>(() => sourceBuild.GetProdConFeedAsync(Version.Parse("6.1")));
         }
 
     }

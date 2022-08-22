@@ -113,7 +113,6 @@ namespace Turkey
             Version packageVersion = dotnet.LatestRuntimeVersion;
             string nuGetConfig = await GenerateNuGetConfigIfNeededAsync(additionalFeed, packageVersion);
 
-
             TestRunner runner = new TestRunner(
                 cleaner: cleaner,
                 system: system,
@@ -142,20 +141,24 @@ namespace Turkey
             {
                 var nuget = new NuGet(client);
                 var sourceBuild = new SourceBuild(client);
-                try
+
+                if (netCoreAppVersion.Major < 4)
                 {
-                    var prodConUrl = await GetProdConFeedUrlIfNeededAsync(nuget, sourceBuild, netCoreAppVersion);
-                    if( !string.IsNullOrEmpty(prodConUrl) )
+                    try
                     {
-                        prodConUrl = prodConUrl.Trim();
-                        Console.WriteLine($"Packages are not live on nuget.org; using {prodConUrl} as additional package source");
-                        urls.Add(prodConUrl);
+                        var prodConUrl = await GetProdConFeedUrlIfNeededAsync(nuget, sourceBuild, netCoreAppVersion);
+                        if (!string.IsNullOrEmpty(prodConUrl))
+                        {
+                            prodConUrl = prodConUrl.Trim();
+                            Console.WriteLine($"Packages are not live on nuget.org; using {prodConUrl} as additional package source");
+                            urls.Add(prodConUrl);
+                        }
                     }
-                }
-                catch( HttpRequestException exception )
-                {
-                    Console.WriteLine("WARNING: failed to get ProdCon url. Ignoring Exception:");
-                    Console.WriteLine(exception.ToString());
+                    catch (HttpRequestException exception)
+                    {
+                        Console.WriteLine("WARNING: failed to get ProdCon url. Ignoring Exception:");
+                        Console.WriteLine(exception.ToString());
+                    }
                 }
 
                 string nugetConfig = null;
