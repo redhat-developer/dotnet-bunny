@@ -24,10 +24,16 @@ jobs:
         dotnet_version:
           - "3.1"
           - "6.0"
+        include:
+          - container_image: quay.io/centos/centos:stream9-development
+            dotnet_version: "7.0"
         exclude:
           - container_image: registry.fedoraproject.org/fedora:rawhide
             dotnet_version: "3.1"
           - container_image: registry.fedoraproject.org/fedora:37
+            dotnet_version: "3.1"
+          # alpine edge has openssl 1.1, not compatible with 3.1
+          - container_image: docker.io/library/alpine:edge
             dotnet_version: "3.1"
 
     container:
@@ -143,7 +149,7 @@ jobs:
 
           dotnet --info
 
-          dotnet turkey/Turkey.dll dotnet-regular-tests -v
+          dotnet turkey/Turkey.dll dotnet-regular-tests -v --timeout 600
 
       - name: Show Logs
         if: ${{ always() }}

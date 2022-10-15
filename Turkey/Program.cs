@@ -112,6 +112,11 @@ namespace Turkey
 
             Version packageVersion = dotnet.LatestRuntimeVersion;
             string nuGetConfig = await GenerateNuGetConfigIfNeededAsync(additionalFeed, packageVersion);
+            if (verbose && nuGetConfig != null)
+            {
+                Console.WriteLine("Using nuget.config: ");
+                Console.WriteLine(nuGetConfig);
+            }
 
             TestRunner runner = new TestRunner(
                 cleaner: cleaner,
@@ -174,6 +179,11 @@ namespace Turkey
 
                 if (urls.Any() || nugetConfig != null)
                 {
+                    // Add the default nuget repo that customer should always
+                    // be using anyway. This is the default, but still useful
+                    // if the nugetConfig has a <clear/> element that removes
+                    // it.
+                    urls.Add("https://api.nuget.org/v3/index.json");
                     return await nuget.GenerateNuGetConfig(urls, nugetConfig);
                 }
             }
