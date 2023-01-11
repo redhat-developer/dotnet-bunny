@@ -157,6 +157,15 @@ Some notes for writing tests:
 - Tests should try and complete as quickly as possible. Long running
   tests may hit a timeout and be marked as failed.
 
+- Tests are executed in multiple environments. Sometimes they are run
+  by the root user (eg, GitHub Actions) and sometimes as non-root (eg,
+  by devs working on tests). A test should make every effort to work
+  in both environments. It must not rely on being run as root.
+
+  If a feature must be verified as non-root and the test is being run
+  by the root user, consider creating a `testrunner` user and `su`-ing
+  to that for the specific test.
+
 # Project Conventions
 
 - All warnings are displayed as:
