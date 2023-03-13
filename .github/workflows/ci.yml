@@ -14,27 +14,16 @@ jobs:
       fail-fast: false
       matrix:
         container_image:
-          - docker.io/library/alpine:edge
-          - docker.io/library/alpine:latest
-          - registry.fedoraproject.org/fedora:35
+          - quay.io/centos/centos:stream9-development
           - registry.fedoraproject.org/fedora:36
           - registry.fedoraproject.org/fedora:37
+          - registry.fedoraproject.org/fedora:38
           - registry.fedoraproject.org/fedora:rawhide
           - registry.access.redhat.com/ubi8
+          - registry.access.redhat.com/ubi9
         dotnet_version:
-          - "3.1"
           - "6.0"
-        include:
-          - container_image: quay.io/centos/centos:stream9-development
-            dotnet_version: "7.0"
-        exclude:
-          - container_image: registry.fedoraproject.org/fedora:rawhide
-            dotnet_version: "3.1"
-          - container_image: registry.fedoraproject.org/fedora:37
-            dotnet_version: "3.1"
-          # alpine edge has openssl 1.1, not compatible with 3.1
-          - container_image: docker.io/library/alpine:edge
-            dotnet_version: "3.1"
+          - "7.0"
 
     container:
       image: ${{ matrix.container_image }}
@@ -87,19 +76,16 @@ jobs:
       fail-fast: false
       matrix:
         container_image:
-          - registry.fedoraproject.org/fedora:35
+          - quay.io/centos/centos:stream9-development
           - registry.fedoraproject.org/fedora:36
           - registry.fedoraproject.org/fedora:37
+          - registry.fedoraproject.org/fedora:38
           - registry.fedoraproject.org/fedora:rawhide
           - registry.access.redhat.com/ubi8
+          - registry.access.redhat.com/ubi9
         dotnet_version:
-          - "3.1"
           - "6.0"
-        exclude:
-          - container_image: registry.fedoraproject.org/fedora:rawhide
-            dotnet_version: "3.1"
-          - container_image: registry.fedoraproject.org/fedora:37
-            dotnet_version: "3.1"
+          - "7.0"
 
     container:
       image: ${{ matrix.container_image }}
@@ -133,7 +119,7 @@ jobs:
         timeout-minutes: 2
         run: |
           dnf install -y python3 wget \
-            $(grep '^Dependencies: ' dotnet-regular-tests/README.md | cut -d: -f2-) \
+            $(grep '^Dependencies(dnf): ' dotnet-regular-tests/README.md | cut -d: -f2-) \
             --skip-broken
 
       - name: Run reproducers
@@ -143,8 +129,8 @@ jobs:
           rm -r dotnet-regular-tests/debugging-sos-lldb* dotnet-regular-tests/createdump-aspnet dotnet-regular-tests/cgroup-limit
 
           ### HACK: UBI 8 is missing strace and bash-completion packages for these tests
-          if [[ ${{ matrix.container_image }} == *ubi8* ]] ; then
-              rm -r dotnet-regular-tests/telemetry-is-off-by-default dotnet-regular-tests/bash-completion
+          if [[ ${{ matrix.container_image }} == *ubi* ]] ; then
+              rm -r dotnet-regular-tests/telemetry-is-off-by-default dotnet-regular-tests/bash-completion dotnet-regular-tests/system-data-odbc
           fi
 
           dotnet --info
