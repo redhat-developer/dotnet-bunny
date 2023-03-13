@@ -90,7 +90,7 @@ namespace Turkey
                         case TestStatus.Failed: resultOutput = "FAIL"; break;
                         case TestStatus.Skipped: resultOutput = "SKIP"; break;
                     }
-                    Console.WriteLine($"[{resultOutput}]");
+                    Console.WriteLine($"[{resultOutput}]\t({elapsedTime}ms)");
                 }
                 else
                 {
