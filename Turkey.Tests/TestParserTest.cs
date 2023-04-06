@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,7 +13,7 @@ namespace Turkey.Tests
         public void DisabledTestShouldBeSkipped()
         {
             TestParser parser = new TestParser();
-            SystemUnderTest system = new SystemUnderTest(null, null, null, null);
+            SystemUnderTest system = new SystemUnderTest(null, null, null, null, null);
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = false,
@@ -42,7 +43,8 @@ namespace Turkey.Tests
                 runtimeVersion: Version.Parse(version),
                 sdkVersion: null,
                 platformIds: new List<string>(),
-                environmentVariables: null);
+                environmentVariables: null,
+                traits: null);
 
             TestDescriptor test = new TestDescriptor()
             {
@@ -77,7 +79,8 @@ namespace Turkey.Tests
                 runtimeVersion: Version.Parse(version),
                 sdkVersion: null,
                 platformIds: new List<string>(),
-                environmentVariables: null);
+                environmentVariables: null,
+                traits: null);
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = true,
@@ -114,7 +117,8 @@ namespace Turkey.Tests
                 runtimeVersion: Version.Parse(version),
                 sdkVersion: null,
                 platformIds: new List<string>(),
-                environmentVariables: null);
+                environmentVariables: null,
+                traits: null);
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = true,
@@ -136,7 +140,8 @@ namespace Turkey.Tests
                 runtimeVersion: Version.Parse("2.1"),
                 sdkVersion: null,
                 platformIds: new string[] { "linux" }.ToList(),
-                environmentVariables: null);
+                environmentVariables: null,
+                traits: null);
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = true,
@@ -164,7 +169,8 @@ namespace Turkey.Tests
                 runtimeVersion: Version.Parse("2.1"),
                 sdkVersion: null,
                 platformIds: currentPlatforms.ToList(),
-                environmentVariables: null);
+                environmentVariables: null,
+                traits: null);
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = true,
@@ -189,7 +195,8 @@ namespace Turkey.Tests
                 runtimeVersion: Version.Parse("3.1"),
                 sdkVersion: Version.Parse(sdkVersion),
                 platformIds: new List<string>(),
-                environmentVariables: null);
+                environmentVariables: null,
+                traits: null);
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = true,
@@ -201,6 +208,64 @@ namespace Turkey.Tests
             var shouldRun = parser.ShouldRunTest(system, test);
 
             Assert.Equal(expectedToRun, shouldRun);
+        }
+
+        public static IEnumerable<object[]> SkipTestForTraits_MemberData()
+        {
+            const string Trait1 = nameof(Trait1);
+            const string Trait2 = nameof(Trait2);
+            string[] Empty = Array.Empty<string>();
+
+            // Empty 'skipWhen' has no skips.
+            yield return new object[] { Empty,                            Empty, false };
+            yield return new object[] { new [] { Trait1 },                Empty, false };
+            yield return new object[] { new string [] { Trait1, Trait2 }, Empty, false };
+
+            // Single match gets skipped.
+            yield return new object[] { new [] { Trait1 },         new string [] { Trait1 }, true };
+            yield return new object[] { new [] { Trait1, Trait2 }, new string [] { Trait1 }, true };
+
+            // No match is enabled.
+            yield return new object[] { Empty,                     new string [] { Trait1 }, false };
+            yield return new object[] { new [] { Trait2 },         new string [] { Trait1 }, false };
+
+            // Comma separated traits work as AND.
+            yield return new object[] { Empty,                     new string [] { $"{Trait1},{Trait2}" }, false };
+            yield return new object[] { new [] { Trait1 },         new string [] { $"{Trait1},{Trait2}" }, false };
+            yield return new object[] { new [] { Trait2 },         new string [] { $"{Trait1},{Trait2}" }, false };
+            yield return new object[] { new [] { Trait1, Trait2 }, new string [] { $"{Trait1},{Trait2}" }, true };
+
+            // Items work as OR.
+            yield return new object[] { Empty,                     new string [] { Trait1, Trait2 }, false };
+            yield return new object[] { new [] { Trait1 },         new string [] { Trait1, Trait2 }, true };
+            yield return new object[] { new [] { Trait2 },         new string [] { Trait1, Trait2 }, true };
+            yield return new object[] { new [] { Trait1, Trait2 }, new string [] { Trait1, Trait2 }, true };
+        }
+
+
+        [Theory]
+        [MemberData(nameof(SkipTestForTraits_MemberData))]
+        public void SkipTestForTraits(string[] systemTraits, string[] skipWhen, bool expectedToSkip)
+        {
+            TestParser parser = new TestParser();
+
+            SystemUnderTest system = new SystemUnderTest(
+                runtimeVersion: Version.Parse("3.1"),
+                sdkVersion: null,
+                platformIds: null,
+                environmentVariables: null,
+                traits: new HashSet<string>(systemTraits));
+            TestDescriptor test = new TestDescriptor()
+            {
+                Enabled = true,
+                VersionSpecific = false,
+                SkipWhen = new List<string>(skipWhen),
+                Version = "2.1"
+            };
+
+            var shouldRun = parser.ShouldRunTest(system, test);
+
+            Assert.Equal(expectedToSkip, !shouldRun);
         }
     }
 }

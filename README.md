@@ -67,6 +67,10 @@ a `test.json` file. An example of this file:
         "fedora.34-s390x",
         "rhel.7",
         "rhel.7-arm64"
+       ],
+      "skipWhen": [
+        "blue",
+        "os=fedora,arch=x64"
        ]
     }
 
@@ -142,6 +146,28 @@ the following keys:
 
   See https://docs.microsoft.com/en-us/dotnet/core/rid-catalog for
   more details. Not all the RIDs are fully supported yet.
+
+- `skipWhen`
+
+This is a list of conditions. If one (or more) conditions in the list
+match the test environment, then the test is skipped.
+
+A condition is a combination of traits separated by commas.
+
+The test runner injects a few traits based on the system.
+Additional traits can be added using the `--trait` flag.
+
+Example:
+
+A test with the following `skipWhen` will be skipped if the
+trait `blue` is set, or both `os=fedora` and `arch=x64` are set.
+
+```
+      "skipWhen": [
+        "blue",
+        "os=fedora,arch=x64"
+       ]
+```
 
 ## Notes on Writing Tests
 

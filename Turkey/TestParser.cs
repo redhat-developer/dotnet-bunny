@@ -70,6 +70,30 @@ namespace Turkey
                 }
             }
 
+            foreach (var skipCondition in test.SkipWhen)
+            {
+                // a skipCondition is formatted as comma-separated traits: 'green,age=21'
+                // the condition is true when all traits are present in the test environment.
+
+                bool skipConditionMatches = true;
+
+                foreach (var skipConditionTrait in skipCondition.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                                .Select(s => s.Trim())
+                                                                .Where(s => s.Length > 0))
+                {
+                    if (!system.Traits.Contains(skipConditionTrait))
+                    {
+                        skipConditionMatches = false;
+                        break;
+                    }
+                }
+
+                if (skipConditionMatches)
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
 

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace Turkey
 {
@@ -33,11 +34,19 @@ namespace Turkey
             new string[] { "--timeout", "-t" },
             "Set the timeout duration for test in seconds");
 
+        public static readonly Option<IEnumerable<string>> traitOption = new Option<IEnumerable<string>>(
+            new string[] { "--trait" },
+            "Add a trait which is used to disable tests.")
+        {
+            Arity = ArgumentArity.ZeroOrMore
+        };
+
         public static async Task<int> Run(string testRoot,
                                           bool verbose,
                                           bool compatible,
                                           string logDirectory,
                                           string additionalFeed,
+                                          IEnumerable<string> trait,
                                           int timeout)
         {
             TimeSpan timeoutForEachTest;
@@ -103,11 +112,15 @@ namespace Turkey
             var sanitizer = new EnvironmentVariableSanitizer();
             var envVars = sanitizer.SanitizeCurrentEnvironmentVariables();
 
+            var traits = CreateTraits(dotnet.LatestRuntimeVersion, dotnet.LatestSdkVersion, platformIds, trait);
+            Console.WriteLine($"Tests matching these traits will be skipped: {string.Join(", ", traits.OrderBy(s => s))}.");
+
             SystemUnderTest system = new SystemUnderTest(
                 runtimeVersion: dotnet.LatestRuntimeVersion,
                 sdkVersion: dotnet.LatestSdkVersion,
                 platformIds: platformIds,
-                environmentVariables: envVars
+                environmentVariables: envVars,
+                traits: traits
             );
 
             Version packageVersion = dotnet.LatestRuntimeVersion;
@@ -191,6 +204,37 @@ namespace Turkey
             return null;
         }
 
+        public static IReadOnlySet<string> CreateTraits(Version runtimeVersion, Version sdkVersion, List<string> rids, IEnumerable<string> additionalTraits)
+        {
+            var traits = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            // Add 'version=' traits.
+            traits.Add($"version={runtimeVersion.Major}.{runtimeVersion.Minor}");
+            traits.Add($"version={runtimeVersion.Major}");
+
+            // Add 'os=', 'rid=' traits.
+            foreach (var rid in rids)
+            {
+                traits.Add($"rid={rid}");
+                if (rid.LastIndexOf('-') is int offset && offset != -1)
+                {
+                    traits.Add($"os={rid.Substring(0, offset)}");
+                }
+            }
+
+            // Add 'arch=' trait.
+            string arch = RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant();
+            traits.Add($"arch={arch}");
+
+            // Add additional traits.
+            foreach (var skipTrait in additionalTraits)
+            {
+                traits.Add(skipTrait);
+            }
+
+            return traits;
+        }
+
         public static async Task<string> GetProdConFeedUrlIfNeededAsync(NuGet nuget, SourceBuild sourceBuild, Version netCoreAppVersion)
         {
             bool live = await nuget.IsPackageLiveAsync("runtime.linux-x64.Microsoft.NetCore.DotNetAppHost", netCoreAppVersion);
@@ -204,9 +248,8 @@ namespace Turkey
 
         static async Task<int> Main(string[] args)
         {
-            Func<string, bool, bool, string, string, int, Task<int>> action = Run;
             var rootCommand = new RootCommand(description: "A test runner for running standalone bash-based or xunit tests");
-            rootCommand.Handler = CommandHandler.Create(action);
+            rootCommand.Handler = CommandHandler.Create(Run);
 
             var testRootArgument = new Argument<string>();
             testRootArgument.Name = "testRoot";
@@ -218,6 +261,7 @@ namespace Turkey
             rootCommand.AddOption(verboseOption);
             rootCommand.AddOption(logDirectoryOption);
             rootCommand.AddOption(additionalFeedOption);
+            rootCommand.AddOption(traitOption);
             rootCommand.AddOption(timeoutOption);
 
             return await rootCommand.InvokeAsync(args);
