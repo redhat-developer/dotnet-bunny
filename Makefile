@@ -1,4 +1,4 @@
-FRAMEWORK:=netcoreapp3.1
+FRAMEWORK:=net6.0
 CONFIGURATION:=Release
 ARCH:=$(subst aarch64,arm64,$(subst x86_64,x64,$(shell uname -m)))
 RUNTIME:=linux-$(ARCH)
