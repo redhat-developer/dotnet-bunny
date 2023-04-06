@@ -22,13 +22,19 @@ namespace Turkey
         public Version SdkVersion { get; }
         public List<string> CurrentPlatformIds { get; }
         public IReadOnlyDictionary<string, string> EnvironmentVariables;
+        public IReadOnlySet<string> Traits { get; }
 
-        public SystemUnderTest(Version runtimeVersion, Version sdkVersion, List<string> platformIds, IReadOnlyDictionary<string, string> environmentVariables)
+        public SystemUnderTest(Version runtimeVersion,
+                               Version sdkVersion,
+                               List<string> platformIds,
+                               IReadOnlyDictionary<string, string> environmentVariables,
+                               IReadOnlySet<string> traits)
         {
             RuntimeVersion = runtimeVersion;
             SdkVersion = sdkVersion;
-            CurrentPlatformIds = platformIds;
+            CurrentPlatformIds = platformIds ?? new List<string>();
             EnvironmentVariables = environmentVariables;
+            Traits = traits ?? new HashSet<string>();
         }
     }
 
