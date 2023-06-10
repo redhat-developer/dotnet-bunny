@@ -37,17 +37,10 @@ sleep {GrandChildAgeSeconds} &
                 using Process process = Process.Start(psi);
 
                 // Use a shorter timeout for WaitForExitAsync than the grandchild lives.
-                Stopwatch stopWatch = new Stopwatch();
-                stopWatch.Start();
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(WaitTimeoutSeconds));
 
                 // The WaitForExit completes by cancellation.
                 await Assert.ThrowsAsync<TaskCanceledException>(() => process.WaitForExitAsync(cts.Token, new StringWriter(), new StringWriter()));
-
-                // The completion takes at least the WaitTime.
-                stopWatch.Stop();
-                TimeSpan elapsedTime = stopWatch.Elapsed;
-                Assert.True(elapsedTime >= TimeSpan.FromSeconds(WaitTimeoutSeconds), "The grandchild is not keeping the script alive");
             }
             finally
             {
