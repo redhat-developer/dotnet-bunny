@@ -14,51 +14,19 @@ namespace Turkey
         {
         }
 
-        protected override async Task<TestResult> InternalRunAsync(CancellationToken cancellationToken)
+        protected override async Task<TestResult> InternalRunAsync(Action<string> logger, CancellationToken cancellationToken)
         {
-            PartialResult result;
-            string stdout = "";
-            string stderr = "";
-            try
-            {
-                result = await BuildProjectAsync(cancellationToken);
-                stdout += Environment.NewLine + result.StandardOutput;
-                stderr += Environment.NewLine + result.StandardError;
-                if (!result.Success)
-                {
-                    return new TestResult(TestStatus.Failed, stdout, stderr);
-                }
+            bool success =    await BuildProjectAsync(logger, cancellationToken) == 0
+                           && await RunTestProjectAsync(logger, cancellationToken) == 0;
 
-                result = await TestProjectAsync(cancellationToken);
-                stdout += Environment.NewLine + result.StandardOutput;
-                stderr += Environment.NewLine + result.StandardError;
-            }
-            catch (OperationCanceledException)
-            {
-                stdout += Environment.NewLine + "[[TIMEOUT]]" + Environment.NewLine;
-                stderr += Environment.NewLine + "[[TIMEOUT]]" + Environment.NewLine;
-                result.Success = false;
-            }
-
-            return new TestResult(result.Success ? TestStatus.Passed : TestStatus.Failed,
-                                  stdout,
-                                  stderr);
+            return success ? TestResult.Passed : TestResult.Failed;
         }
 
 
-        private async Task<PartialResult> BuildProjectAsync(CancellationToken token)
-        {
-            return ProcessResultToPartialResult(await DotNet.BuildAsync(Directory, SystemUnderTest.EnvironmentVariables, token));
-        }
+        private Task<int> BuildProjectAsync(Action<string> logger, CancellationToken token)
+            => DotNet.BuildAsync(Directory, SystemUnderTest.EnvironmentVariables, logger, token);
 
-        private async Task<PartialResult> TestProjectAsync(CancellationToken token)
-        {
-            return ProcessResultToPartialResult(await DotNet.TestAsync(Directory, SystemUnderTest.EnvironmentVariables, token));
-        }
-
-        private static PartialResult ProcessResultToPartialResult(DotNet.ProcessResult result)
-        {
-            return new PartialResult(result.ExitCode == 0, result.StandardOutput, result.StandardError);
-        }
+        private Task<int> RunTestProjectAsync(Action<string> logger, CancellationToken token)
+            => DotNet.TestAsync(Directory, SystemUnderTest.EnvironmentVariables, logger, token);
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -43,7 +44,7 @@ namespace Turkey
         public async virtual Task AtStartupAsync() {}
         public async virtual Task BeforeTestAsync() {}
         public async virtual Task AfterParsingTestAsync(string name, bool enabled) {}
-        public async virtual Task AfterRunningTestAsync(string name, TestResult result, TimeSpan testTime) {}
+        public async virtual Task AfterRunningTestAsync(string name, TestResult result, StringBuilder testLog, TimeSpan testTime) {}
         public async virtual Task AfterRunningAllTestsAsync(TestResults results) {}
     }
 
@@ -64,7 +65,7 @@ namespace Turkey
             this.nuGetConfig = nuGetConfig;
         }
 
-        public async Task<TestResults> ScanAndRunAsync(List<TestOutput> outputs, Func<CancellationTokenSource> GetNewCancellationToken)
+        public async Task<TestResults> ScanAndRunAsync(List<TestOutput> outputs, string logDir, TimeSpan timeoutForEachTest)
         {
             await outputs.ForEachAsync(output => output.AtStartupAsync());
 
@@ -87,8 +88,6 @@ namespace Turkey
             foreach (var file in sortedFiles)
             {
                 testTimeWatch.Reset();
-                var cancellationTokenSource = GetNewCancellationToken();
-                var cancellationToken = cancellationTokenSource.Token;
                 await cleaner.CleanLocalDotNetCacheAsync();
 
                 testTimeWatch.Start();
@@ -98,29 +97,53 @@ namespace Turkey
                     Console.WriteLine($"WARNING: Unable to parse {file}");
                     continue;
                 }
-
                 var test = parsedTest.Test;
+                string testName = test.Descriptor.Name;
 
-                await outputs.ForEachAsync(output => output.AfterParsingTestAsync(test.Descriptor.Name, !test.Skip));
+                await outputs.ForEachAsync(output => output.AfterParsingTestAsync(testName, !test.Skip));
+
+                using var cts = timeoutForEachTest == TimeSpan.Zero ? null : new CancellationTokenSource(timeoutForEachTest);
+                var cancellationToken = cts is null ? default : cts.Token;
+                Action<string> testLogger = null;
+
+                // Log to a file.
+                string logFileName = Path.Combine(logDir, $"logfile-{testName}.log");
+                using var logFile = new StreamWriter(logFileName) { AutoFlush = true };
+                Action<string> logToLogFile = s => logFile.WriteLine(s);
+                testLogger += logToLogFile;
+
+                // Log to a StringBuilder.
+                StringBuilder testLog = new();
+                Action<string> logToTestLog = s => testLog.AppendLine(s);
+                testLogger += logToTestLog;
 
                 if (test.Descriptor.Cleanup)
                 {
                     await cleaner.CleanProjectLocalDotNetCruftAsync();
                 }
 
-                var result = await test.RunAsync(cancellationToken);
+                TestResult testResult;
+                try
+                {
+                    testResult = await test.RunAsync(testLogger, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    testLogger("[[TIMEOUT]]");
+                    testResult = TestResult.Failed;
+                }
 
                 testTimeWatch.Stop();
 
                 results.Total++;
-                switch (result.Status)
+                switch (testResult)
                 {
-                    case TestStatus.Passed: results.Passed++; break;
-                    case TestStatus.Failed: results.Failed++; break;
-                    case TestStatus.Skipped: results.Skipped++; break;
+                    case TestResult.Passed: results.Passed++; break;
+                    case TestResult.Failed: results.Failed++; break;
+                    case TestResult.Skipped: results.Skipped++; break;
                 }
 
-                await outputs.ForEachAsync(output => output.AfterRunningTestAsync(test.Descriptor.Name, result, testTimeWatch.Elapsed));
+                await outputs.ForEachAsync(output => output.AfterRunningTestAsync(testName, testResult, testLog, testTimeWatch.Elapsed));
             }
 
             await outputs.ForEachAsync(output => output.AfterRunningAllTestsAsync(results));

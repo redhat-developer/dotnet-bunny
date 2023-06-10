@@ -79,21 +79,7 @@ namespace Turkey
             }
         }
 
-        public struct ProcessResult
-        {
-            public int ExitCode { get; }
-            public string StandardOutput { get; }
-            public string StandardError { get; }
-
-            public ProcessResult(int exitCode, string stdout, string stderr)
-            {
-                ExitCode = exitCode;
-                StandardOutput = stdout;
-                StandardError = stderr;
-            }
-        }
-
-        public static async Task<ProcessResult> BuildAsync(DirectoryInfo workingDirectory, IReadOnlyDictionary<string, string> environment, CancellationToken token)
+        public static Task<int> BuildAsync(DirectoryInfo workingDirectory, IReadOnlyDictionary<string, string> environment, Action<string> logger, CancellationToken token)
         {
             var arguments = new string[]
             {
@@ -102,21 +88,16 @@ namespace Turkey
                 "-p:UseSharedCompilation=false",
                 "-m:1",
             };
-            var result = await RunDotNetCommandAsync(workingDirectory, arguments, environment, token);
-            return result;
+            return RunDotNetCommandAsync(workingDirectory, arguments, environment, logger, token);
         }
 
-        public static async Task<ProcessResult> RunAsync(DirectoryInfo workingDirectory, IReadOnlyDictionary<string, string> environment, CancellationToken token)
-        {
-            return await RunDotNetCommandAsync(workingDirectory, new string[] { "run", "--no-restore", "--no-build"} , environment, token);
-        }
+        public static Task<int> RunAsync(DirectoryInfo workingDirectory, IReadOnlyDictionary<string, string> environment, Action<string> logger, CancellationToken token)
+            => RunDotNetCommandAsync(workingDirectory, new string[] { "run", "--no-restore", "--no-build"} , environment, logger, token);
 
-        public static async Task<ProcessResult> TestAsync(DirectoryInfo workingDirectory, IReadOnlyDictionary<string, string> environment, CancellationToken token)
-        {
-            return await RunDotNetCommandAsync(workingDirectory, new string[] { "test", "--no-restore", "--no-build"} , environment, token);
-        }
+        public static Task<int> TestAsync(DirectoryInfo workingDirectory, IReadOnlyDictionary<string, string> environment, Action<string> logger, CancellationToken token)
+            => RunDotNetCommandAsync(workingDirectory, new string[] { "test", "--no-restore", "--no-build"} , environment, logger, token);
 
-        private static async Task<ProcessResult> RunDotNetCommandAsync(DirectoryInfo workingDirectory, string[] commands, IReadOnlyDictionary<string, string> environment, CancellationToken token)
+        private static async Task<int> RunDotNetCommandAsync(DirectoryInfo workingDirectory, string[] commands, IReadOnlyDictionary<string, string> environment, Action<string> logger, CancellationToken token)
         {
             var arguments = string.Join(" ", commands);
             ProcessStartInfo startInfo = new ProcessStartInfo()
@@ -134,15 +115,7 @@ namespace Turkey
                 startInfo.EnvironmentVariables.Add(key, value);
             }
 
-            using (var process = Process.Start(startInfo))
-            {
-                StringWriter standardOutputWriter = new StringWriter();
-                StringWriter standardErrorWriter = new StringWriter();
-                await process.WaitForExitAsync(token, standardOutputWriter, standardErrorWriter);
-                int exitCode = exitCode = process.ExitCode;
-
-                return new ProcessResult(exitCode, standardOutputWriter.ToString(), standardErrorWriter.ToString());
-            }
+            return await ProcessRunner.RunAsync(startInfo, logger, token);
         }
     }
 }

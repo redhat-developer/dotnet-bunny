@@ -6,38 +6,55 @@ using System.Threading.Tasks;
 
 namespace Turkey
 {
+    public static class ProcessRunner
+    {
+        public static async Task<int> RunAsync(ProcessStartInfo psi, Action<string> logger, CancellationToken token)
+        {
+            logger($"Executing {psi.FileName} with arguments {psi.Arguments} in working directory {psi.WorkingDirectory}");
+            using var process = Process.Start(psi);
+            await process.WaitForExitAsync(logger, token);
+            return process.ExitCode;
+        }
+    }
+
     public static class ProcessExtensions
     {
-        public static async Task WaitForExitAsync(this Process process, CancellationToken token, TextWriter standardOutput, TextWriter standardError)
+        public static async Task WaitForExitAsync(this Process process, Action<string> logger, CancellationToken token)
         {
             process.EnableRaisingEvents = true;
-            var outputHandler = new DataReceivedEventHandler(
-                (sender, e) =>
+            bool captureOutput = true;
+            DataReceivedEventHandler logToLogger = (sender, e) =>
+            {
+                if (e.Data != null)
                 {
-                    if (e.Data != null)
+                    lock (logger)
                     {
-                        standardOutput.WriteLine(e.Data);
+                        if (captureOutput)
+                        {
+                            logger(e.Data);
+                        }
                     }
-                });
-            var errorHandler = new DataReceivedEventHandler(
-                (sender, e) =>
-                {
-                    if (e.Data != null)
-                    {
-                        standardError.WriteLine(e.Data);
-                    }
-                });
-            process.OutputDataReceived += outputHandler;
+                }
+            };
+            process.OutputDataReceived += logToLogger;
             process.BeginOutputReadLine();
-            process.ErrorDataReceived += errorHandler;
+            process.ErrorDataReceived += logToLogger;
             process.BeginErrorReadLine();
 
             try
             {
                 await process.WaitForExitAsync(token);
+
+                logger($"Process Exit Code: {process.ExitCode}");
             }
             catch (OperationCanceledException ex)
             {
+                lock (logger)
+                {
+                    captureOutput = false;
+                }
+                logger($"Process wait for exit cancelled.");
+
                 try
                 {
                     process.Kill(entireProcessTree: true);
