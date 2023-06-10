@@ -22,36 +22,8 @@ namespace Turkey
     }
 
     // TODO is this a strongly-typed enum in C#?
-    public enum TestStatus {
+    public enum TestResult {
         Passed, Failed, Skipped,
-    }
-
-    public class TestResult
-    {
-        public TestStatus Status { get; }
-        public string StandardOutput { get; }
-        public string StandardError { get; }
-
-        public TestResult(TestStatus status, string standardOutput, string standardError)
-        {
-            Status = status;
-            StandardOutput = standardOutput;
-            StandardError = standardError;
-        }
-    }
-
-    struct PartialResult
-    {
-        public bool Success;
-        public string StandardOutput;
-        public string StandardError;
-
-        public PartialResult(bool success, string stdout, string stderr)
-        {
-            Success = success;
-            StandardOutput = stdout;
-            StandardError = stderr;
-        }
     }
 
     public abstract class Test
@@ -71,14 +43,11 @@ namespace Turkey
             this.Skip = !enabled;
         }
 
-        public async Task<TestResult> RunAsync(CancellationToken cancelltionToken)
+        public async Task<TestResult> RunAsync(Action<string> logger, CancellationToken cancelltionToken)
         {
             if (Skip)
             {
-                return new TestResult(
-                    status: TestStatus.Skipped,
-                    standardOutput: null,
-                    standardError: null);
+                return TestResult.Skipped;
             }
 
             var path = Path.Combine(Directory.FullName, "nuget.config");
@@ -91,15 +60,9 @@ namespace Turkey
                 await File.WriteAllTextAsync(path, NuGetConfig);
             }
 
-            var result = await UpdateProjectFilesIfPresent();
-            var stdout = result.StandardOutput;
-            var stderr = result.StandardError;
-            if (!result.Success)
-            {
-                return new TestResult(TestStatus.Failed, stdout, stderr);
-            }
+            UpdateProjectFilesIfPresent();
 
-            var testResult = await InternalRunAsync(cancelltionToken);
+            var testResult = await InternalRunAsync(logger, cancelltionToken);
 
             if (!string.IsNullOrEmpty(NuGetConfig))
             {
@@ -109,14 +72,14 @@ namespace Turkey
             return testResult;
         }
 
-        private async Task<PartialResult> UpdateProjectFilesIfPresent()
+        private void UpdateProjectFilesIfPresent()
         {
             if (SystemUnderTest.RuntimeVersion < Version.Parse("2.0"))
             {
                 var projectJsonPath = Path.Combine(this.Directory.FullName, "project.json");
                 if (File.Exists(projectJsonPath))
                 {
-                    return await CopyProjectJsonFile();
+                    CopyProjectJsonFile();
                 }
             }
             else
@@ -125,13 +88,12 @@ namespace Turkey
                 var csprojPath = Path.Combine(this.Directory.FullName, csprojFile);
                 if (File.Exists(csprojPath))
                 {
-                    return await UpdateCsprojVersion(csprojPath);
+                    UpdateCsprojVersion(csprojPath);
                 }
             }
-            return new PartialResult(true, "No project file to update", "");
         }
 
-        private async Task<PartialResult> CopyProjectJsonFile()
+        private void CopyProjectJsonFile()
         {
             string majorMinor = "" + SystemUnderTest.RuntimeVersion.Major + SystemUnderTest.RuntimeVersion.Minor;
             var fileName = $"resources/project{majorMinor}xunit.json";
@@ -139,7 +101,6 @@ namespace Turkey
             var source = resourceLocation;
             var dest = Path.Combine(this.Directory.FullName, "project.json");
             File.Copy(source, dest);
-            return new PartialResult(true, "", "");
         }
 
         private static string FindResourceFile(string name)
@@ -154,20 +115,18 @@ namespace Turkey
             return resourceLocation;
         }
 
-        private async Task<PartialResult> UpdateCsprojVersion(string csprojPath)
+        private void UpdateCsprojVersion(string csprojPath)
         {
             var contents = File.ReadAllText(csprojPath);
             var updatedContents = UpdateCsprojContents(contents);
 
             File.WriteAllText(csprojPath, updatedContents);
-
-            return new PartialResult(true, "", "");
         }
 
         private string UpdateCsprojContents(string contents) =>
             new CsprojCompatibilityPatcher().Patch(contents, this.SystemUnderTest.RuntimeVersion);
 
-        protected abstract Task<TestResult> InternalRunAsync(CancellationToken cancellationToken);
+        protected abstract Task<TestResult> InternalRunAsync(Action<string> logger, CancellationToken cancellationToken);
 
     }
 }

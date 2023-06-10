@@ -40,7 +40,7 @@ sleep {GrandChildAgeSeconds} &
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(WaitTimeoutSeconds));
 
                 // The WaitForExit completes by cancellation.
-                await Assert.ThrowsAsync<TaskCanceledException>(() => process.WaitForExitAsync(cts.Token, new StringWriter(), new StringWriter()));
+                await Assert.ThrowsAsync<TaskCanceledException>(() => process.WaitForExitAsync(logger: msg => { }, cts.Token));
             }
             finally
             {

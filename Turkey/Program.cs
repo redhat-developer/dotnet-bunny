@@ -18,10 +18,6 @@ namespace Turkey
             new string[] { "--verbose", "-v" },
             "Show verbose output");
 
-        public static readonly Option<bool> compatibleOption = new Option<bool>(
-            new string[] { "--compatible", "-c" },
-            "Make output compatible with dotnet-bunny");
-
         public static readonly Option<string> logDirectoryOption = new Option<string>(
             new string[] { "--log-directory", "-l" },
             "Set directory for writing log files");
@@ -43,7 +39,6 @@ namespace Turkey
 
         public static async Task<int> Run(string testRoot,
                                           bool verbose,
-                                          bool compatible,
                                           string logDirectory,
                                           string additionalFeed,
                                           IEnumerable<string> trait,
@@ -87,17 +82,11 @@ namespace Turkey
             }
             Console.WriteLine($"Testing everything under {testRootDirectory.FullName}");
 
-            LogWriter logWriter = new LogWriter(logDir);
-
             Cleaner cleaner = new Cleaner();
 
             DotNet dotnet = new DotNet();
 
-            TestOutput defaultOutput = new TestOutputFormats.NewOutput(logWriter);
-            if (compatible)
-            {
-                defaultOutput = new TestOutputFormats.DotNetBunnyOutput(logWriter);
-            }
+            TestOutput defaultOutput = new TestOutputFormats.NewOutput();
 
             TestOutput junitOutput = new TestOutputFormats.JUnitOutput(logDir);
 
@@ -138,9 +127,7 @@ namespace Turkey
                 verboseOutput: verbose,
                 nuGetConfig: nuGetConfig);
 
-            var cancellationTokenSource = new Func<CancellationTokenSource>(() => new CancellationTokenSource(timeoutForEachTest));
-
-            var results = await runner.ScanAndRunAsync(testOutputs, cancellationTokenSource);
+            var results = await runner.ScanAndRunAsync(testOutputs, logDir.FullName, timeoutForEachTest);
 
             int exitCode = (results.Failed == 0) ? 0 : 1;
             return exitCode;
@@ -257,7 +244,6 @@ namespace Turkey
             testRootArgument.Arity = ArgumentArity.ZeroOrOne;
 
             rootCommand.AddArgument(testRootArgument);
-            rootCommand.AddOption(compatibleOption);
             rootCommand.AddOption(verboseOption);
             rootCommand.AddOption(logDirectoryOption);
             rootCommand.AddOption(additionalFeedOption);

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
@@ -10,100 +11,38 @@ namespace Turkey
 {
     public class TestOutputFormats
     {
-        public class DotNetBunnyOutput : TestOutput
-        {
-            private readonly LogWriter _logWriter;
-
-            public DotNetBunnyOutput(LogWriter writer)
-            {
-                this._logWriter = writer;
-            }
-
-            public async override Task AtStartupAsync()
-            {
-                Console.WriteLine("\n\n(\\_/)\n(^_^)\n@(\")(\")\n\n".Replace("\n", Environment.NewLine));
-            }
-
-            public async override Task AfterParsingTestAsync(string name, bool enabled)
-            {
-                if (enabled)
-                {
-                    Console.WriteLine($"Running {name}");
-                }
-            }
-
-            public async override Task AfterRunningTestAsync(string name, TestResult result, TimeSpan testTime)
-            {
-                string resultText;
-                switch (result.Status)
-                {
-                    case TestStatus.Passed:
-                        resultText = "PASS";
-                        Console.WriteLine($"Result: {resultText}" + Environment.NewLine);
-                        break;
-                    case TestStatus.Failed:
-                        resultText = "FAIL - Code: 1";
-                        Console.WriteLine($"Result: {resultText}" + Environment.NewLine);
-                        break;
-                    default:
-                        break;
-                }
-
-                if (result.Status == TestStatus.Failed)
-                {
-                    await _logWriter.WriteAsync(name, result.StandardOutput, result.StandardError);
-                }
-
-            }
-
-            public async override Task AfterRunningAllTestsAsync(TestResults results)
-            {
-                Console.WriteLine($"Total: {results.Total} Passed: {results.Passed} Failed: {results.Failed}");
-            }
-        }
-
         public class NewOutput : TestOutput
         {
-
-            private readonly LogWriter _logWriter;
-
-            public NewOutput(LogWriter writer)
-            {
-                this._logWriter = writer;
-            }
-
             public async override Task AfterParsingTestAsync(string name, bool enabled)
             {
                 var nameText = string.Format("{0,-60}", name);
                 Console.Write(nameText);
             }
 
-            public async override Task AfterRunningTestAsync(string name, TestResult result, TimeSpan testTime)
+            public async override Task AfterRunningTestAsync(string name, TestResult result, StringBuilder testLog, TimeSpan testTime)
             {
                 string elapsedTime = testTime.TotalMilliseconds.ToString();
                 string resultOutput = null;
                 if (Console.IsOutputRedirected || Console.IsErrorRedirected)
                 {
-                    switch (result.Status)
+                    switch (result)
                     {
-                        case TestStatus.Passed: resultOutput = "PASS"; break;
-                        case TestStatus.Failed: resultOutput = "FAIL"; break;
-                        case TestStatus.Skipped: resultOutput = "SKIP"; break;
+                        case TestResult.Passed: resultOutput = "PASS"; break;
+                        case TestResult.Failed: resultOutput = "FAIL"; break;
+                        case TestResult.Skipped: resultOutput = "SKIP"; break;
                     }
                     Console.WriteLine($"[{resultOutput}]\t({elapsedTime}ms)");
                 }
                 else
                 {
-                    switch (result.Status)
+                    switch (result)
                     {
-                        case TestStatus.Passed: resultOutput = "\u001b[32mPASS\u001b[0m"; break;
-                        case TestStatus.Failed: resultOutput = "\u001b[31mFAIL\u001b[0m"; break;
-                        case TestStatus.Skipped: resultOutput = "SKIP"; break;
+                        case TestResult.Passed: resultOutput = "\u001b[32mPASS\u001b[0m"; break;
+                        case TestResult.Failed: resultOutput = "\u001b[31mFAIL\u001b[0m"; break;
+                        case TestResult.Skipped: resultOutput = "SKIP"; break;
                     }
                     Console.WriteLine($"[{resultOutput}]\t({elapsedTime}ms)");
                 }
-
-                await _logWriter.WriteAsync(name, result.StandardOutput, result.StandardError);
             }
 
             public async override Task AfterRunningAllTestsAsync(TestResults results)
@@ -120,8 +59,7 @@ namespace Turkey
                 public bool Failed;
                 public bool Skipped;
                 public string Message;
-                public string StandardOutput;
-                public string StandardError;
+                public StringBuilder Log;
             }
 
             private List<TestCase> _testCases = new List<TestCase>();
@@ -137,21 +75,15 @@ namespace Turkey
                 _resultsFile = resultsFile;
             }
 
-            public async override Task AfterParsingTestAsync(string name, bool enabled)
-            {
-
-            }
-
-            public async override Task AfterRunningTestAsync(string name, TestResult result, TimeSpan testTime)
+            public async override Task AfterRunningTestAsync(string name, TestResult result, StringBuilder testLog, TimeSpan testTime)
             {
                 var testCase = new TestCase();
                 testCase.Name = name;
                 testCase.ClassName = "TestSuite";
-                testCase.Failed = (result.Status == TestStatus.Failed);
-                testCase.Skipped = (result.Status == TestStatus.Skipped);
-                testCase.Message = "see stdout/stderr";
-                testCase.StandardOutput = result.StandardOutput;
-                testCase.StandardError = result.StandardError;
+                testCase.Failed = result == TestResult.Failed;
+                testCase.Skipped = result == TestResult.Skipped;
+                testCase.Message = "see log";
+                testCase.Log = testLog;
 
                 _testCases.Add(testCase);
             }
@@ -192,19 +124,11 @@ namespace Turkey
                             writer.WriteEndElement();
                         }
 
-                        if (testCase.StandardOutput != null)
+                        if (testCase.Log != null)
                         {
                             writer.WriteStartElement("system-out");
-                            string standardOutput = RemoveInvalidXmlCharacters(testCase.StandardOutput);
+                            string standardOutput = RemoveInvalidXmlCharacters(testCase.Log.ToString());
                             writer.WriteString(standardOutput);
-                            writer.WriteEndElement();
-                        }
-
-                        if (testCase.StandardError != null)
-                        {
-                            writer.WriteStartElement("system-err");
-                            string standardError = RemoveInvalidXmlCharacters(testCase.StandardError);
-                            writer.WriteString(standardError);
                             writer.WriteEndElement();
                         }
 

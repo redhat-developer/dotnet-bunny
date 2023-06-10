@@ -14,19 +14,13 @@ namespace Turkey
         {
         }
 
-        protected override async Task<TestResult> InternalRunAsync(CancellationToken cancellationToken)
+        protected override async Task<TestResult> InternalRunAsync(Action<string> logger, CancellationToken cancellationToken)
         {
-            var standardOutputWriter = new StringWriter();
-            var standardErrorWriter = new StringWriter();
-
             FileInfo testFile = new FileInfo(Path.Combine(Directory.FullName, "test.sh"));
             if (!testFile.Exists)
             {
-                standardErrorWriter.WriteLine($"Unable to find 'test.sh' in {Directory.FullName}");
-                return new TestResult(
-                    status: TestStatus.Failed,
-                    standardOutput: standardOutputWriter.ToString(),
-                    standardError: standardErrorWriter.ToString());
+                logger($"Unable to find 'test.sh' in {Directory.FullName}");
+                return TestResult.Failed;
             }
 
             ProcessStartInfo startInfo = new ProcessStartInfo()
@@ -44,27 +38,9 @@ namespace Turkey
                 startInfo.EnvironmentVariables.Add(key, value);
             }
 
-            standardOutputWriter.WriteLine($"Executing {startInfo.FileName} with arguments {startInfo.Arguments} in working directory {startInfo.WorkingDirectory}");
-            using (Process p = Process.Start(startInfo))
-            {
-                var status = TestStatus.Failed;
-                try
-                {
-                    await p.WaitForExitAsync(cancellationToken, standardOutputWriter, standardErrorWriter);
-                    status = (p.ExitCode == 0) ? TestStatus.Passed: TestStatus.Failed;
-                    standardOutputWriter.WriteLine($"Exit Code: {p.ExitCode}");
-                }
-                catch (OperationCanceledException)
-                {
-                    standardOutputWriter.WriteLine("[[TIMEOUT]]");
-                    standardErrorWriter.WriteLine("[[TIMEOUT]]");
-                }
+            int exitCode = await ProcessRunner.RunAsync(startInfo, logger, cancellationToken);
 
-                return new TestResult(
-                    status: status,
-                    standardOutput: standardOutputWriter.ToString(),
-                    standardError: standardErrorWriter.ToString());
-            }
+            return exitCode == 0 ? TestResult.Passed : TestResult.Failed;
         }
     }
 }
