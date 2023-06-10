@@ -20,12 +20,13 @@ namespace Turkey.Tests
             {
                 // This script creates a 'sleep' grandchild that outlives its parent.
                 File.WriteAllText(filename,
-                    $"""
-                    #!/bin/bash
+$@"#!/bin/bash
 
-                    sleep {GrandChildAgeSeconds} &
-                    """);
-                File.SetUnixFileMode(filename, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+sleep {GrandChildAgeSeconds} &
+");
+                Process chmodProcess = Process.Start("chmod", $"+x {filename}");
+                chmodProcess.WaitForExit();
+                Assert.Equal(0, chmodProcess.ExitCode);
 
                 var psi = new ProcessStartInfo()
                 {
@@ -36,14 +37,16 @@ namespace Turkey.Tests
                 using Process process = Process.Start(psi);
 
                 // Use a shorter timeout for WaitForExitAsync than the grandchild lives.
-                long startTime = Stopwatch.GetTimestamp();
+                Stopwatch stopWatch = new Stopwatch();
+                stopWatch.Start();
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(WaitTimeoutSeconds));
 
                 // The WaitForExit completes by cancellation.
                 await Assert.ThrowsAsync<TaskCanceledException>(() => process.WaitForExitAsync(cts.Token, new StringWriter(), new StringWriter()));
 
                 // The completion takes at least the WaitTime.
-                TimeSpan elapsedTime = Stopwatch.GetElapsedTime(startTime);
+                stopWatch.Stop();
+                TimeSpan elapsedTime = stopWatch.Elapsed;
                 Assert.True(elapsedTime >= TimeSpan.FromSeconds(WaitTimeoutSeconds), "The grandchild is not keeping the script alive");
             }
             finally
