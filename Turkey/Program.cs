@@ -113,7 +113,8 @@ namespace Turkey
             );
 
             Version packageVersion = dotnet.LatestRuntimeVersion;
-            string nuGetConfig = await GenerateNuGetConfigIfNeededAsync(additionalFeed, packageVersion);
+            string nuGetConfig = await GenerateNuGetConfigIfNeededAsync(additionalFeed, packageVersion,
+                                                                        useSourceBuildNuGetConfig: false);
             if (verbose && nuGetConfig != null)
             {
                 Console.WriteLine("Using nuget.config: ");
@@ -133,7 +134,7 @@ namespace Turkey
             return exitCode;
         }
 
-        public static async Task<string> GenerateNuGetConfigIfNeededAsync(string additionalFeed, Version netCoreAppVersion)
+        public static async Task<string> GenerateNuGetConfigIfNeededAsync(string additionalFeed, Version netCoreAppVersion, bool useSourceBuildNuGetConfig)
         {
             var urls = new List<string>();
 
@@ -167,14 +168,17 @@ namespace Turkey
                 }
 
                 string nugetConfig = null;
-                try
+                if (useSourceBuildNuGetConfig)
                 {
-                    nugetConfig = await sourceBuild.GetNuGetConfigAsync(netCoreAppVersion);
-                }
-                catch( HttpRequestException exception )
-                {
-                    Console.WriteLine("WARNING: failed to get NuGet.config from source-build. Ignoring Exception:");
-                    Console.WriteLine(exception.ToString());
+                    try
+                    {
+                        nugetConfig = await sourceBuild.GetNuGetConfigAsync(netCoreAppVersion);
+                    }
+                    catch( HttpRequestException exception )
+                    {
+                        Console.WriteLine("WARNING: failed to get NuGet.config from source-build. Ignoring Exception:");
+                        Console.WriteLine(exception.ToString());
+                    }
                 }
 
                 if (urls.Any() || nugetConfig != null)
