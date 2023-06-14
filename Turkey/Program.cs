@@ -101,10 +101,11 @@ namespace Turkey
             var sanitizer = new EnvironmentVariableSanitizer();
             var envVars = sanitizer.SanitizeCurrentEnvironmentVariables();
 
-            var traits = CreateTraits(dotnet.LatestRuntimeVersion, dotnet.LatestSdkVersion, platformIds, trait);
+            var traits = CreateTraits(dotnet.LatestRuntimeVersion, dotnet.LatestSdkVersion, platformIds, dotnet.IsMonoRuntime(dotnet.LatestRuntimeVersion), trait);
             Console.WriteLine($"Tests matching these traits will be skipped: {string.Join(", ", traits.OrderBy(s => s))}.");
 
             SystemUnderTest system = new SystemUnderTest(
+                dotnet,
                 runtimeVersion: dotnet.LatestRuntimeVersion,
                 sdkVersion: dotnet.LatestSdkVersion,
                 platformIds: platformIds,
@@ -195,7 +196,7 @@ namespace Turkey
             return null;
         }
 
-        public static IReadOnlySet<string> CreateTraits(Version runtimeVersion, Version sdkVersion, List<string> rids, IEnumerable<string> additionalTraits)
+        public static IReadOnlySet<string> CreateTraits(Version runtimeVersion, Version sdkVersion, List<string> rids, bool isMonoRuntime, IEnumerable<string> additionalTraits)
         {
             var traits = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -216,6 +217,9 @@ namespace Turkey
             // Add 'arch=' trait.
             string arch = RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant();
             traits.Add($"arch={arch}");
+
+            // Add 'runtime=' trait.
+            traits.Add($"runtime={(isMonoRuntime ? "mono" : "coreclr")}");
 
             // Add additional traits.
             foreach (var skipTrait in additionalTraits)

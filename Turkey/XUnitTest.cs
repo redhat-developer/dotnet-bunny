@@ -24,9 +24,9 @@ namespace Turkey
 
 
         private Task<int> BuildProjectAsync(Action<string> logger, CancellationToken token)
-            => DotNet.BuildAsync(Directory, SystemUnderTest.EnvironmentVariables, logger, token);
+            => SystemUnderTest.Dotnet.BuildAsync(Directory, SystemUnderTest.EnvironmentVariables, logger, token);
 
         private Task<int> RunTestProjectAsync(Action<string> logger, CancellationToken token)
-            => DotNet.TestAsync(Directory, SystemUnderTest.EnvironmentVariables, logger, token);
+            => SystemUnderTest.Dotnet.TestAsync(Directory, SystemUnderTest.EnvironmentVariables, logger, token);
     }
 }

@@ -13,7 +13,7 @@ namespace Turkey.Tests
         public void DisabledTestShouldBeSkipped()
         {
             TestParser parser = new TestParser();
-            SystemUnderTest system = new SystemUnderTest(null, null, null, null, null);
+            SystemUnderTest system = new SystemUnderTest(null, null, null, null, null, null);
             TestDescriptor test = new TestDescriptor()
             {
                 Enabled = false,
@@ -40,6 +40,7 @@ namespace Turkey.Tests
         {
             TestParser parser = new TestParser();
             SystemUnderTest system = new SystemUnderTest(
+                dotnet: null,
                 runtimeVersion: Version.Parse(version),
                 sdkVersion: null,
                 platformIds: new List<string>(),
@@ -76,6 +77,7 @@ namespace Turkey.Tests
         {
             TestParser parser = new TestParser();
             SystemUnderTest system = new SystemUnderTest(
+                dotnet: null,
                 runtimeVersion: Version.Parse(version),
                 sdkVersion: null,
                 platformIds: new List<string>(),
@@ -114,6 +116,7 @@ namespace Turkey.Tests
         {
             TestParser parser = new TestParser();
             SystemUnderTest system = new SystemUnderTest(
+                dotnet: null,
                 runtimeVersion: Version.Parse(version),
                 sdkVersion: null,
                 platformIds: new List<string>(),
@@ -137,6 +140,7 @@ namespace Turkey.Tests
         {
             TestParser parser = new TestParser();
             SystemUnderTest system = new SystemUnderTest(
+                dotnet: null,
                 runtimeVersion: Version.Parse("2.1"),
                 sdkVersion: null,
                 platformIds: new string[] { "linux" }.ToList(),
@@ -166,6 +170,7 @@ namespace Turkey.Tests
         {
             TestParser parser = new TestParser();
             SystemUnderTest system = new SystemUnderTest(
+                dotnet: null,
                 runtimeVersion: Version.Parse("2.1"),
                 sdkVersion: null,
                 platformIds: currentPlatforms.ToList(),
@@ -192,6 +197,7 @@ namespace Turkey.Tests
         {
             TestParser parser = new TestParser();
             SystemUnderTest system = new SystemUnderTest(
+                dotnet: null,
                 runtimeVersion: Version.Parse("3.1"),
                 sdkVersion: Version.Parse(sdkVersion),
                 platformIds: new List<string>(),
@@ -250,6 +256,7 @@ namespace Turkey.Tests
             TestParser parser = new TestParser();
 
             SystemUnderTest system = new SystemUnderTest(
+                dotnet: null,
                 runtimeVersion: Version.Parse("3.1"),
                 sdkVersion: null,
                 platformIds: null,
