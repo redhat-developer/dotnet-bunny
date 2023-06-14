@@ -24,13 +24,16 @@ namespace Turkey
         public List<string> CurrentPlatformIds { get; }
         public IReadOnlyDictionary<string, string> EnvironmentVariables;
         public IReadOnlySet<string> Traits { get; }
+        public DotNet Dotnet { get; }
 
-        public SystemUnderTest(Version runtimeVersion,
+        public SystemUnderTest(DotNet dotnet,
+                               Version runtimeVersion,
                                Version sdkVersion,
                                List<string> platformIds,
                                IReadOnlyDictionary<string, string> environmentVariables,
                                IReadOnlySet<string> traits)
         {
+            Dotnet = dotnet;
             RuntimeVersion = runtimeVersion;
             SdkVersion = sdkVersion;
             CurrentPlatformIds = platformIds ?? new List<string>();

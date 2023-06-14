@@ -55,29 +55,33 @@ namespace Turkey.Tests
             string expectedArch = $"arch={OSArchitectureName}";
 
             // default traits.
-            yield return new object[] { runtimeVersion, sdkVersion, Array.Empty<string>(), Array.Empty<string>(), CombineTraits() };
+            yield return new object[] { runtimeVersion, sdkVersion, Array.Empty<string>(), false, Array.Empty<string>(), CombineTraits() };
+
+            // 'runtime=mono'
+            yield return new object[] { runtimeVersion, sdkVersion, Array.Empty<string>(), true, Array.Empty<string>(), CombineTraits(isMonoRuntime: true) };
 
             // 'os=..' and 'rid=...' are added for the platform rids.
-            yield return new object[] { runtimeVersion, sdkVersion, new[] { "linux-x64", "fedora.37-x64", "linux-musl-x64" }, Array.Empty<string>(),
+            yield return new object[] { runtimeVersion, sdkVersion, new[] { "linux-x64", "fedora.37-x64", "linux-musl-x64" }, false, Array.Empty<string>(),
                                     CombineTraits(new[] { "os=linux", "os=fedora.37", "os=linux-musl",
                                                           "rid=linux-x64", "rid=fedora.37-x64", "rid=linux-musl-x64" } ) };
 
             // additional traits are added.
-            yield return new object[] { runtimeVersion, sdkVersion, Array.Empty<string>(), new[] { "blue", "green" },
+            yield return new object[] { runtimeVersion, sdkVersion, Array.Empty<string>(), false, new[] { "blue", "green" },
                                             CombineTraits(new[] { "blue", "green" } ) };
 
-            string[] CombineTraits(string[] expectedAdditionalTraits = null)
+            string[] CombineTraits(string[] expectedAdditionalTraits = null, bool isMonoRuntime = false)
                 => expectedVersionTraits
                     .Concat(new[] { expectedArch })
+                    .Concat(isMonoRuntime ? new[] { "runtime=mono" } : new[] { "runtime=coreclr" })
                     .Concat(expectedAdditionalTraits ?? Array.Empty<string>())
                     .ToArray();
         }
 
         [Theory]
         [MemberData(nameof(SystemTraits_MemberData))]
-        public void SystemTraits(Version runtimeVersion, Version sdkVersion, string[] rids, string[] additionalTraits, string[] expectedTraits)
+        public void SystemTraits(Version runtimeVersion, Version sdkVersion, string[] rids, bool isMonoRuntime, string[] additionalTraits, string[] expectedTraits)
         {
-            IReadOnlySet<string> systemTraits = Program.CreateTraits(runtimeVersion, sdkVersion, new List<string>(rids), additionalTraits);
+            IReadOnlySet<string> systemTraits = Program.CreateTraits(runtimeVersion, sdkVersion, new List<string>(rids), isMonoRuntime, additionalTraits);
 
             Assert.Equal(expectedTraits.OrderBy(s => s), systemTraits.OrderBy(s => s));
         }
