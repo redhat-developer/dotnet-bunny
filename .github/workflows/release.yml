@@ -19,15 +19,17 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          dnf install -y dotnet-sdk-3.1 git make
+          dnf install -y dotnet-sdk-6.0 git make
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref }}
 
       - name: Run tests and publish binaries
         run: |
           set -euo pipefail
-          # work-around actions/checkout losing annotation information: https://github.com/actions/checkout/issues/290
-          git fetch -f origin ${{ github.ref }}:${{ github.ref }}
+          git config --global --add safe.directory "$(pwd)"
           make check
           make publish
 
