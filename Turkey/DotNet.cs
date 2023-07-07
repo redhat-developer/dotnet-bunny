@@ -61,8 +61,11 @@ namespace Turkey
             }
         }
 
+        public bool IsCoreClrRuntime(Version runtimeVersion)
+            => IsCoreClrRuntime(DotnetRoot, runtimeVersion);
+
         public bool IsMonoRuntime(Version runtimeVersion)
-            => IsMonoRuntime(DotnetRoot, runtimeVersion);
+            => !IsCoreClrRuntime(runtimeVersion);
 
         public List<Version> SdkVersions
         {
@@ -137,7 +140,7 @@ namespace Turkey
             return await ProcessRunner.RunAsync(startInfo, logger, token);
         }
 
-        private static bool IsMonoRuntime(string dotnetRoot, Version version)
+        private static bool IsCoreClrRuntime(string dotnetRoot, Version version)
         {
             string[] runtimeDirectories = Directory.GetDirectories(Path.Combine(dotnetRoot, "shared", "Microsoft.NETCore.App"))
                                             .Where(dir => Version.Parse(Path.GetFileName(dir)) == version)
@@ -153,7 +156,7 @@ namespace Turkey
             }
 
             string runtimeDir = runtimeDirectories[0];
-            return File.Exists(Path.Combine(runtimeDir, "mono-gc.h"));
+            return File.Exists(Path.Combine(runtimeDir, "libcoreclrtraceptprovider.so"));
         }
 
         private static string? FindProgramInPath(string program)
