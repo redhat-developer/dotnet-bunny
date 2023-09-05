@@ -44,14 +44,14 @@ namespace Turkey
                                           IEnumerable<string> trait,
                                           int timeout)
         {
-            TimeSpan timeoutForEachTest;
+            TimeSpan defaultTimeout;
             if (timeout == 0)
             {
-                timeoutForEachTest = new TimeSpan(hours: 0, minutes: 5, seconds: 0);
+                defaultTimeout = new TimeSpan(hours: 0, minutes: 5, seconds: 0);
             }
             else
             {
-                timeoutForEachTest = new TimeSpan(hours: 0, minutes: 0, seconds: timeout);
+                defaultTimeout = new TimeSpan(hours: 0, minutes: 0, seconds: timeout);
             }
 
             var currentDirectory = new DirectoryInfo(Directory.GetCurrentDirectory());
@@ -129,7 +129,7 @@ namespace Turkey
                 verboseOutput: verbose,
                 nuGetConfig: nuGetConfig);
 
-            var results = await runner.ScanAndRunAsync(testOutputs, logDir.FullName, timeoutForEachTest);
+            var results = await runner.ScanAndRunAsync(testOutputs, logDir.FullName, defaultTimeout);
 
             int exitCode = (results.Failed == 0) ? 0 : 1;
             return exitCode;

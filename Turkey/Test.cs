@@ -17,6 +17,7 @@ namespace Turkey
         public bool VersionSpecific { get; set; }
         public string Type { get; set; }
         public bool Cleanup { get; set; }
+        public int Timeout { get; set; }
         public List<string> IgnoredRIDs { get; set; } = new();
         public List<string> SkipWhen { get; set; } = new();
     }
@@ -33,14 +34,16 @@ namespace Turkey
         public string NuGetConfig { get; }
         public TestDescriptor Descriptor { get; }
         public bool Skip { get; }
+        public TimeSpan? CustomTimeout { get; }
 
-        public Test(DirectoryInfo testDirectory, SystemUnderTest system, string nuGetConfig, TestDescriptor descriptor, bool enabled)
+        public Test(DirectoryInfo testDirectory, SystemUnderTest system, string nuGetConfig, TestDescriptor descriptor, bool enabled, int timeout)
         {
             this.Directory = testDirectory;
             this.SystemUnderTest = system;
             this.NuGetConfig = nuGetConfig;
             this.Descriptor = descriptor;
             this.Skip = !enabled;
+            this.CustomTimeout = timeout > 0 ? TimeSpan.FromSeconds(timeout) : null;
         }
 
         public async Task<TestResult> RunAsync(Action<string> logger, CancellationToken cancelltionToken)

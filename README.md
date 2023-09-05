@@ -61,6 +61,7 @@ a `test.json` file. An example of this file:
       "versionSpecific": false,
       "type": "xunit",
       "cleanup": true,
+      "timeout": 0,
       "ignoredRIDs": [
         "fedora",
         "fedora.29",
@@ -167,6 +168,20 @@ trait `blue` is set, or both `os=fedora` and `arch=x64` are set.
         "blue",
         "os=fedora,arch=x64"
        ]
+```
+
+- `timeout`
+
+This is a number, that when set higher than zero, sets the timeout
+for a specific test. The value is specified in seconds.
+
+Example:
+
+A test with the following `timeout` will be allowed to run for
+10 minutes.
+
+```
+      "timeout": 600
 ```
 
 ## Notes on Writing Tests

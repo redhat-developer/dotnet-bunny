@@ -21,7 +21,9 @@ namespace Turkey
 
             public async override Task AfterRunningTestAsync(string name, TestResult result, StringBuilder testLog, TimeSpan testTime)
             {
-                string elapsedTime = testTime.TotalMilliseconds.ToString();
+                int minutes = (int)testTime.TotalMinutes;
+                string elapsedTime = minutes == 0 ? $"{testTime.Seconds}s"
+                                                  : $"{minutes}m {testTime.Seconds}s";
                 string resultOutput = null;
                 if (Console.IsOutputRedirected || Console.IsErrorRedirected)
                 {
@@ -31,7 +33,7 @@ namespace Turkey
                         case TestResult.Failed: resultOutput = "FAIL"; break;
                         case TestResult.Skipped: resultOutput = "SKIP"; break;
                     }
-                    Console.WriteLine($"[{resultOutput}]\t({elapsedTime}ms)");
+                    Console.WriteLine($"[{resultOutput}]\t({elapsedTime})");
                 }
                 else
                 {
@@ -41,7 +43,7 @@ namespace Turkey
                         case TestResult.Failed: resultOutput = "\u001b[31mFAIL\u001b[0m"; break;
                         case TestResult.Skipped: resultOutput = "SKIP"; break;
                     }
-                    Console.WriteLine($"[{resultOutput}]\t({elapsedTime}ms)");
+                    Console.WriteLine($"[{resultOutput}]\t({elapsedTime})");
                 }
             }
 

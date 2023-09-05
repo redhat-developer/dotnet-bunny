@@ -68,7 +68,7 @@ namespace Turkey
             this.nuGetConfig = nuGetConfig;
         }
 
-        public async Task<TestResults> ScanAndRunAsync(List<TestOutput> outputs, string logDir, TimeSpan timeoutForEachTest)
+        public async Task<TestResults> ScanAndRunAsync(List<TestOutput> outputs, string logDir, TimeSpan defaultTimeout)
         {
             await outputs.ForEachAsync(output => output.AtStartupAsync());
 
@@ -105,7 +105,8 @@ namespace Turkey
 
                 await outputs.ForEachAsync(output => output.AfterParsingTestAsync(testName, !test.Skip));
 
-                using var cts = timeoutForEachTest == TimeSpan.Zero ? null : new CancellationTokenSource(timeoutForEachTest);
+                TimeSpan testTimeout = test.CustomTimeout ?? defaultTimeout;
+                using var cts = testTimeout == TimeSpan.Zero ? null : new CancellationTokenSource(testTimeout);
                 var cancellationToken = cts is null ? default : cts.Token;
                 Action<string> testLogger = null;
 
