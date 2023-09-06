@@ -105,7 +105,7 @@ namespace Turkey
 
                 await outputs.ForEachAsync(output => output.AfterParsingTestAsync(testName, !test.Skip));
 
-                TimeSpan testTimeout = test.CustomTimeout ?? defaultTimeout;
+                TimeSpan testTimeout = test.Descriptor.TimeoutMultiplier * defaultTimeout;
                 using var cts = testTimeout == TimeSpan.Zero ? null : new CancellationTokenSource(testTimeout);
                 var cancellationToken = cts is null ? default : cts.Token;
                 Action<string> testLogger = null;

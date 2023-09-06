@@ -31,10 +31,10 @@ namespace Turkey
             switch (descriptor.Type)
             {
                 case "xunit":
-                    test = new XUnitTest(directory, system, nuGetConfig, descriptor, enabled, descriptor.Timeout);
+                    test = new XUnitTest(directory, system, nuGetConfig, descriptor, enabled);
                     return (true, test);
                 case "bash":
-                    test = new BashTest(directory, system, nuGetConfig, descriptor, enabled, descriptor.Timeout);
+                    test = new BashTest(directory, system, nuGetConfig, descriptor, enabled);
                     return (true, test);
                 default:
                     return (false, null);
