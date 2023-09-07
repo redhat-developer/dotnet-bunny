@@ -22,8 +22,9 @@ namespace Turkey
             public async override Task AfterRunningTestAsync(string name, TestResult result, StringBuilder testLog, TimeSpan testTime)
             {
                 int minutes = (int)testTime.TotalMinutes;
-                string elapsedTime = minutes == 0 ? $"{testTime.Seconds}s"
-                                                  : $"{minutes}m {testTime.Seconds}s";
+                int seconds = (int)Math.Ceiling(testTime.TotalSeconds - 60 * minutes);
+                string elapsedTime = minutes == 0 ? $"{seconds}s"
+                                                  : $"{minutes}m {seconds}s";
                 string resultOutput = null;
                 if (Console.IsOutputRedirected || Console.IsErrorRedirected)
                 {
