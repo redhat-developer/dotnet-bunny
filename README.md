@@ -61,6 +61,7 @@ a `test.json` file. An example of this file:
       "versionSpecific": false,
       "type": "xunit",
       "cleanup": true,
+      "timeoutMultiplier": 1.0,
       "ignoredRIDs": [
         "fedora",
         "fedora.29",
@@ -167,6 +168,21 @@ trait `blue` is set, or both `os=fedora` and `arch=x64` are set.
         "blue",
         "os=fedora,arch=x64"
        ]
+```
+
+- `timeoutMultiplier`
+
+This is a number, that scales the default timeout for a specific test.
+The default timeout can be set through the command-line `--timeout`
+argument.
+
+Example:
+
+A test with the following `timeoutMultiplier` will be allowed to take twice
+as long.
+
+```
+      "timeoutMultiplier": 2.0
 ```
 
 ## Notes on Writing Tests

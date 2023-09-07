@@ -17,6 +17,7 @@ namespace Turkey
         public bool VersionSpecific { get; set; }
         public string Type { get; set; }
         public bool Cleanup { get; set; }
+        public double TimeoutMultiplier { get; set; } = 1.0;
         public List<string> IgnoredRIDs { get; set; } = new();
         public List<string> SkipWhen { get; set; } = new();
     }
