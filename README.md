@@ -178,7 +178,7 @@ argument.
 
 Example:
 
-A test with the following `timeoutMultiplier` will be allowed to twice
+A test with the following `timeoutMultiplier` will be allowed to take twice
 as long.
 
 ```
