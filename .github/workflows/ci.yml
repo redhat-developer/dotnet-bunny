@@ -14,16 +14,20 @@ jobs:
       fail-fast: false
       matrix:
         container_image:
-          - quay.io/centos/centos:stream9-development
-          - registry.fedoraproject.org/fedora:36
+          - quay.io/centos/centos:stream8
+          - quay.io/centos/centos:stream9
           - registry.fedoraproject.org/fedora:37
           - registry.fedoraproject.org/fedora:38
+          - registry.fedoraproject.org/fedora:39
           - registry.fedoraproject.org/fedora:rawhide
           - registry.access.redhat.com/ubi8
           - registry.access.redhat.com/ubi9
         dotnet_version:
           - "6.0"
           - "7.0"
+        include:
+          - container_image: quay.io/centos/centos:stream9
+            dotnet_version: "8.0"
 
     container:
       image: ${{ matrix.container_image }}
@@ -76,16 +80,21 @@ jobs:
       fail-fast: false
       matrix:
         container_image:
-          - quay.io/centos/centos:stream9-development
-          - registry.fedoraproject.org/fedora:36
+          - quay.io/centos/centos:stream8
+          - quay.io/centos/centos:stream9
           - registry.fedoraproject.org/fedora:37
           - registry.fedoraproject.org/fedora:38
+          - registry.fedoraproject.org/fedora:39
           - registry.fedoraproject.org/fedora:rawhide
           - registry.access.redhat.com/ubi8
           - registry.access.redhat.com/ubi9
         dotnet_version:
           - "6.0"
           - "7.0"
+        include:
+          - container_image: quay.io/centos/centos:stream9
+            dotnet_version: "8.0"
+
 
     container:
       image: ${{ matrix.container_image }}
