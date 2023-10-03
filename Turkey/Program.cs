@@ -85,6 +85,7 @@ namespace Turkey
             Cleaner cleaner = new Cleaner();
 
             DotNet dotnet = new DotNet();
+            Version runtimeVersion = dotnet.LatestRuntimeVersion;
 
             TestOutput defaultOutput = new TestOutputFormats.NewOutput();
 
@@ -101,19 +102,21 @@ namespace Turkey
             var sanitizer = new EnvironmentVariableSanitizer();
             var envVars = sanitizer.SanitizeCurrentEnvironmentVariables();
 
-            var traits = CreateTraits(dotnet.LatestRuntimeVersion, dotnet.LatestSdkVersion, platformIds, dotnet.IsMonoRuntime(dotnet.LatestRuntimeVersion), trait);
+            var traits = CreateTraits(runtimeVersion, dotnet.LatestSdkVersion, platformIds, dotnet.IsMonoRuntime(runtimeVersion), trait);
             Console.WriteLine($"Tests matching these traits will be skipped: {string.Join(", ", traits.OrderBy(s => s))}.");
+
+            envVars["TestTargetFramework"] = $"net{runtimeVersion.Major}.{runtimeVersion.Minor}";
 
             SystemUnderTest system = new SystemUnderTest(
                 dotnet,
-                runtimeVersion: dotnet.LatestRuntimeVersion,
+                runtimeVersion: runtimeVersion,
                 sdkVersion: dotnet.LatestSdkVersion,
                 platformIds: platformIds,
                 environmentVariables: envVars,
                 traits: traits
             );
 
-            Version packageVersion = dotnet.LatestRuntimeVersion;
+            Version packageVersion = runtimeVersion;
             string nuGetConfig = await GenerateNuGetConfigIfNeededAsync(additionalFeed, packageVersion,
                                                                         useSourceBuildNuGetConfig: false);
             if (verbose && nuGetConfig != null)
