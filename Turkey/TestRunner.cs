@@ -48,6 +48,7 @@ namespace Turkey
         public async virtual Task BeforeTestAsync() {}
         public async virtual Task AfterParsingTestAsync(string name, bool enabled) {}
         public async virtual Task AfterRunningTestAsync(string name, TestResult result, StringBuilder testLog, TimeSpan testTime) {}
+        public async virtual Task PrintFailedTests() {}
         public async virtual Task AfterRunningAllTestsAsync(TestResults results) {}
     }
 
@@ -70,6 +71,7 @@ namespace Turkey
 
         public async Task<TestResults> ScanAndRunAsync(List<TestOutput> outputs, string logDir, TimeSpan defaultTimeout)
         {
+
             await outputs.ForEachAsync(output => output.AtStartupAsync());
 
             TestResults results = new TestResults();
@@ -148,7 +150,9 @@ namespace Turkey
                 }
 
                 await outputs.ForEachAsync(output => output.AfterRunningTestAsync(testName, testResult, testLog, testTimeWatch.Elapsed));
-            }
+                }
+            
+            await outputs.ForEachAsync(outputs => outputs.PrintFailedTests());
 
             await outputs.ForEachAsync(output => output.AfterRunningAllTestsAsync(results));
 
