@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Serialization;
 
 namespace Turkey
 {
@@ -13,6 +15,17 @@ namespace Turkey
     {
         public class NewOutput : TestOutput
         {
+            public class FailedTest
+            {
+                public string Name{ set; get;}
+                public string Duration{ set; get;}
+            }
+
+            private List<FailedTest> failedTests = new List<FailedTest>();
+
+            public async override Task AtStartupAsync(){
+                Console.WriteLine("Running tests:");
+            }
             public async override Task AfterParsingTestAsync(string name, bool enabled)
             {
                 var nameText = string.Format("{0,-60}", name);
@@ -31,7 +44,7 @@ namespace Turkey
                     switch (result)
                     {
                         case TestResult.Passed: resultOutput = "PASS"; break;
-                        case TestResult.Failed: resultOutput = "FAIL"; break;
+                        case TestResult.Failed: resultOutput = "FAIL"; failedTests.Add(new FailedTest {Name = name, Duration = elapsedTime}); break;
                         case TestResult.Skipped: resultOutput = "SKIP"; break;
                     }
                     Console.WriteLine($"[{resultOutput}]\t({elapsedTime})");
@@ -41,15 +54,26 @@ namespace Turkey
                     switch (result)
                     {
                         case TestResult.Passed: resultOutput = "\u001b[32mPASS\u001b[0m"; break;
-                        case TestResult.Failed: resultOutput = "\u001b[31mFAIL\u001b[0m"; break;
+                        case TestResult.Failed: resultOutput = "\u001b[31mFAIL\u001b[0m"; failedTests.Add(new FailedTest {Name = name, Duration = elapsedTime}); break;
                         case TestResult.Skipped: resultOutput = "SKIP"; break;
                     }
                     Console.WriteLine($"[{resultOutput}]\t({elapsedTime})");
                 }
             }
 
+            public async override Task PrintFailedTests()
+            {
+                Console.WriteLine();
+                Console.WriteLine("The following tests failed: ");
+                foreach(var test in failedTests)
+                {
+                   Console.WriteLine($"{string.Format("{0,-30}", test.Name)}({test.Duration})");
+                }
+            }
+
             public async override Task AfterRunningAllTestsAsync(TestResults results)
             {
+                Console.WriteLine();
                 Console.WriteLine($"Total: {results.Total} Passed: {results.Passed} Failed: {results.Failed}");
             }
         }
