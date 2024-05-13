@@ -152,7 +152,10 @@ namespace Turkey
                 await outputs.ForEachAsync(output => output.AfterRunningTestAsync(testName, testResult, testLog, testTimeWatch.Elapsed));
                 }
             
-            await outputs.ForEachAsync(outputs => outputs.PrintFailedTests());
+            if (results.Failed != 0 )
+            {
+                await outputs.ForEachAsync(outputs => outputs.PrintFailedTests());
+            }
 
             await outputs.ForEachAsync(output => output.AfterRunningAllTestsAsync(results));
 

@@ -67,7 +67,7 @@ namespace Turkey
                 Console.WriteLine("The following tests failed: ");
                 foreach(var test in failedTests)
                 {
-                   Console.WriteLine($"{string.Format("{0,-30}", test.Name)}({test.Duration})");
+                    Console.WriteLine($"{string.Format("{0,-30}", test.Name)}({test.Duration})");
                 }
             }
 
