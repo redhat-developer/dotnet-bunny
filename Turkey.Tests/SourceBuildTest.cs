@@ -48,17 +48,6 @@ namespace Turkey.Tests
             }
         }
 
-        [Fact]
-        public async Task VerifyProdConFeedIsLookedUpAndThenTheFeedIsVerifiedToResolve()
-        {
-            var messageHandler = new ProdConHandler();
-            var client = new HttpClient(messageHandler);
-            var sourceBuild = new SourceBuild(client);
-
-            var feed = await sourceBuild.GetProdConFeedAsync(Version.Parse("3.1"));
-
-            Assert.Equal(FAKE_FEED, feed);
-        }
 
         [Fact]
         public async Task VerifyProdConFeedIsNotUsedForNewReleases()
