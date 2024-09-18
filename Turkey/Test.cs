@@ -61,8 +61,6 @@ namespace Turkey
                 await File.WriteAllTextAsync(path, NuGetConfig);
             }
 
-            UpdateProjectFilesIfPresent();
-
             var testResult = await InternalRunAsync(logger, cancelltionToken);
 
             if (!string.IsNullOrEmpty(NuGetConfig))
@@ -72,60 +70,6 @@ namespace Turkey
 
             return testResult;
         }
-
-        private void UpdateProjectFilesIfPresent()
-        {
-            if (SystemUnderTest.RuntimeVersion < Version.Parse("2.0"))
-            {
-                var projectJsonPath = Path.Combine(this.Directory.FullName, "project.json");
-                if (File.Exists(projectJsonPath))
-                {
-                    CopyProjectJsonFile();
-                }
-            }
-            else
-            {
-                var csprojFile = $"{Directory.Name}.csproj";
-                var csprojPath = Path.Combine(this.Directory.FullName, csprojFile);
-                if (File.Exists(csprojPath))
-                {
-                    UpdateCsprojVersion(csprojPath);
-                }
-            }
-        }
-
-        private void CopyProjectJsonFile()
-        {
-            string majorMinor = "" + SystemUnderTest.RuntimeVersion.Major + SystemUnderTest.RuntimeVersion.Minor;
-            var fileName = $"resources/project{majorMinor}xunit.json";
-            var resourceLocation = FindResourceFile(fileName);
-            var source = resourceLocation;
-            var dest = Path.Combine(this.Directory.FullName, "project.json");
-            File.Copy(source, dest);
-        }
-
-        private static string FindResourceFile(string name)
-        {
-            var assemblyLocation = Assembly.GetExecutingAssembly().Location;
-            var dir = Path.GetDirectoryName(assemblyLocation);
-            var resourceLocation = Path.Combine(dir, name);
-            if (!File.Exists(resourceLocation))
-            {
-                throw new Exception($"Resource {name} at location {resourceLocation} does not exist");
-            }
-            return resourceLocation;
-        }
-
-        private void UpdateCsprojVersion(string csprojPath)
-        {
-            var contents = File.ReadAllText(csprojPath);
-            var updatedContents = UpdateCsprojContents(contents);
-
-            File.WriteAllText(csprojPath, updatedContents);
-        }
-
-        private string UpdateCsprojContents(string contents) =>
-            new CsprojCompatibilityPatcher().Patch(contents, this.SystemUnderTest.RuntimeVersion);
 
         protected abstract Task<TestResult> InternalRunAsync(Action<string> logger, CancellationToken cancellationToken);
 

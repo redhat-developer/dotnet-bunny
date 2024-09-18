@@ -18,18 +18,8 @@ namespace Turkey
 
         public string GetBranchContentUrl(Version version)
         {
-            string url;
-            if (version.Major <= 3)
-            {
-                var branchName = "release/" + version.MajorMinor;
-                url = $"https://raw.githubusercontent.com/dotnet/source-build/{branchName}/";
-            }
-            else
-            {
-                var branchName = "release/" + version.MajorMinor + ".1xx";
-                url = $"https://raw.githubusercontent.com/dotnet/installer/{branchName}/";
-            }
-
+            var branchName = "release/" + version.MajorMinor + ".1xx";
+            var url = $"https://raw.githubusercontent.com/dotnet/installer/{branchName}/";
             return url;
         }
 

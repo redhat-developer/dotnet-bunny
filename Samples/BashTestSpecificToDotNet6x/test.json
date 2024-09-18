@@ -1,8 +1,8 @@
 {
-  "name": "BashTestSpecificToDotNet2x",
+  "name": "BashTestSpecificToDotNet6x",
   "enabled": true,
   "requiresSdk": true,
-  "version": "2.x",
+  "version": "6.x",
   "versionSpecific": true,
   "type": "bash",
   "cleanup": true,
