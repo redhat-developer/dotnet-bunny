@@ -18,7 +18,9 @@ namespace Turkey
 
         public List<string> ComputePlatformIds(string[] osReleaseLines, string lddVersionOutput)
         {
-            string arch = Enum.GetName(typeof(Architecture), RuntimeInformation.OSArchitecture).ToLowerInvariant();
+            #pragma warning disable CA1308 // Normalize strings to uppercase
+            string arch = RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant();
+            #pragma warning restore CA1308 // Normalize strings to uppercase
             return ComputePlatformIds(osReleaseLines, arch, lddVersionOutput);
         }
 
@@ -63,17 +65,17 @@ namespace Turkey
             return platforms.ToList();
         }
 
-        private string GetValue(string key, string[] lines)
+        private static string GetValue(string key, string[] lines)
         {
             return lines.Where(line => line.StartsWith(key + "=", StringComparison.Ordinal)).Last().Substring((key + "=").Length);
         }
 
-        private string Unquote(string text)
+        private static string Unquote(string text)
         {
             // TODO implement proper un-escaping
             // This is a limited shell-style syntax described at
             // https://www.freedesktop.org/software/systemd/man/os-release.html
-            if (text.StartsWith("\"") && text.EndsWith("\""))
+            if (text.StartsWith("\"", StringComparison.Ordinal) && text.EndsWith("\"", StringComparison.Ordinal))
             {
                 return text.Substring(1, text.Length - 2);
             }
@@ -81,7 +83,9 @@ namespace Turkey
             return text;
         }
 
+#pragma warning disable CA1822 // Mark members as static
         internal string GetLddVersion()
+#pragma warning restore CA1822 // Mark members as static
         {
             using (Process p = new Process())
             {

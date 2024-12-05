@@ -10,7 +10,7 @@ namespace Turkey
         {
             foreach (T item in items)
             {
-                await task(item);
+                await task(item).ConfigureAwait(false);
             }
         }
     }

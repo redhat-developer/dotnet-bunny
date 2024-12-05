@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 
 using Newtonsoft.Json;
@@ -15,7 +16,9 @@ namespace Turkey
             return TryParseAsync(system, nuGetConfig, dir, File.ReadAllText(testConfiguration.FullName));
         }
 
-        public async Task<(bool Success, Test Test)> TryParseAsync(SystemUnderTest system, string nuGetConfig, DirectoryInfo directory, string testConfiguration)
+#pragma warning disable CA1801 // Remove unused parameter
+        public Task<(bool Success, Test Test)> TryParseAsync(SystemUnderTest system, string nuGetConfig, DirectoryInfo directory, string testConfiguration)
+#pragma warning restore CA1801 // Remove unused parameter
         {
             // TODO: async
             var fileName = Path.Combine(directory.FullName, "test.json");
@@ -32,12 +35,12 @@ namespace Turkey
             {
                 case "xunit":
                     test = new XUnitTest(directory, system, nuGetConfig, descriptor, enabled);
-                    return (true, test);
+                    return Task.FromResult((true, test));
                 case "bash":
                     test = new BashTest(directory, system, nuGetConfig, descriptor, enabled);
-                    return (true, test);
+                    return Task.FromResult((true, test));
                 default:
-                    return (false, null);
+                    return Task.FromResult((false, (Test)null));
             }
         }
 
@@ -98,7 +101,9 @@ namespace Turkey
         }
 
 
+#pragma warning disable CA1822 // Mark members as static
         private bool VersionMatches(TestDescriptor test, Version runtimeVersion)
+#pragma warning restore CA1822 // Mark members as static
         {
             if (test.VersionSpecific)
             {
