@@ -12,7 +12,7 @@ namespace Turkey
         {
             logger($"Executing {psi.FileName} with arguments {psi.Arguments} in working directory {psi.WorkingDirectory}");
             using var process = Process.Start(psi);
-            await process.WaitForExitAsync(logger, token);
+            await process.WaitForExitAsync(logger, token).ConfigureAwait(false);
             return process.ExitCode;
         }
     }
@@ -43,11 +43,11 @@ namespace Turkey
 
             try
             {
-                await process.WaitForExitAsync(token);
+                await process.WaitForExitAsync(token).ConfigureAwait(false);
 
                 logger($"Process Exit Code: {process.ExitCode}");
             }
-            catch (OperationCanceledException ex)
+            catch (OperationCanceledException)
             {
                 lock (logger)
                 {

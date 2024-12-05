@@ -11,9 +11,9 @@ using System.Xml.Serialization;
 
 namespace Turkey
 {
-    public class TestOutputFormats
+    public static class TestOutputFormats
     {
-        public class NewOutput : TestOutput
+        internal class NewOutput : TestOutput
         {
             public class FailedTest
             {
@@ -23,16 +23,23 @@ namespace Turkey
 
             private List<FailedTest> failedTests = new List<FailedTest>();
 
-            public async override Task AtStartupAsync(){
-                Console.WriteLine("Running tests:");
-            }
-            public async override Task AfterParsingTestAsync(string name, bool enabled)
+#pragma warning disable CA1822 // Mark members as static
+            public void AtStartup()
+#pragma warning restore CA1822 // Mark members as static
             {
+                Console.WriteLine("Running tests:");
+                return;
+            }
+            public override Task AfterParsingTestAsync(string name, bool enabled)
+            {
+                #pragma warning disable CA1305
                 var nameText = string.Format("{0,-60}", name);
+                #pragma warning restore CA1305
                 Console.Write(nameText);
+                return Task.CompletedTask;
             }
 
-            public async override Task AfterRunningTestAsync(string name, TestResult result, StringBuilder testLog, TimeSpan testTime)
+            public override Task AfterRunningTestAsync(string name, TestResult result, StringBuilder testLog, TimeSpan testTime)
             {
                 int minutes = (int)testTime.TotalMinutes;
                 int seconds = (int)Math.Ceiling(testTime.TotalSeconds - 60 * minutes);
@@ -59,26 +66,31 @@ namespace Turkey
                     }
                     Console.WriteLine($"[{resultOutput}]\t({elapsedTime})");
                 }
+                return Task.CompletedTask;
             }
 
-            public async override Task PrintFailedTests()
+            public override Task PrintFailedTests()
             {
                 Console.WriteLine();
                 Console.WriteLine("The following tests failed: ");
                 foreach(var test in failedTests)
                 {
+                    #pragma warning disable CA1305
                     Console.WriteLine($"{string.Format("{0,-30}", test.Name)}({test.Duration})");
+                    #pragma warning restore CA1305
                 }
+                return Task.CompletedTask;
             }
 
-            public async override Task AfterRunningAllTestsAsync(TestResults results)
+            public override Task AfterRunningAllTestsAsync(TestResults results)
             {
                 Console.WriteLine();
                 Console.WriteLine($"Total: {results.Total} Passed: {results.Passed} Failed: {results.Failed}");
+                return Task.CompletedTask;
             }
         }
 
-        public class JUnitOutput : TestOutput
+        internal class JUnitOutput : TestOutput
         {
             private struct TestCase {
                 public string Name;
@@ -102,7 +114,7 @@ namespace Turkey
                 _resultsFile = resultsFile;
             }
 
-            public async override Task AfterRunningTestAsync(string name, TestResult result, StringBuilder testLog, TimeSpan testTime)
+            public override Task AfterRunningTestAsync(string name, TestResult result, StringBuilder testLog, TimeSpan testTime)
             {
                 var testCase = new TestCase();
                 testCase.Name = name;
@@ -113,9 +125,11 @@ namespace Turkey
                 testCase.Log = testLog;
 
                 _testCases.Add(testCase);
+
+                return Task.CompletedTask;
             }
 
-            public async override Task AfterRunningAllTestsAsync(TestResults results)
+            public override Task AfterRunningAllTestsAsync(TestResults results)
             {
                 var settings = new XmlWriterSettings();
                 settings.Indent = true;
@@ -126,8 +140,10 @@ namespace Turkey
 
                     writer.WriteStartElement("testsuite");
                     writer.WriteAttributeString("name", "dotnet");
+#pragma warning disable CA1305 // Specify IFormatProvider
                     writer.WriteAttributeString("tests", _testCases.Count.ToString());
                     writer.WriteAttributeString("failures", _testCases.Where(t => t.Failed).Count().ToString());
+#pragma warning restore CA1305 // Specify IFormatProvider
                     writer.WriteAttributeString("errors", "0");
 
                     foreach (var testCase in _testCases)
@@ -168,9 +184,10 @@ namespace Turkey
                     writer.WriteEndDocument();
                     writer.Close();
                 }
+                return Task.CompletedTask;
             }
 
-            private string RemoveInvalidXmlCharacters(string input)
+            private static string RemoveInvalidXmlCharacters(string input)
             {
                 return Regex.Replace(input, @"[\u0000-\u0008,\u000B,\u000C,\u000E-\u001F]", "");
             }

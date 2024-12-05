@@ -12,7 +12,9 @@ using System.Runtime.InteropServices;
 
 namespace Turkey
 {
+#pragma warning disable CA1052 // Static holder types should be Static or NotInheritable
     public class Program
+#pragma warning restore CA1052 // Static holder types should be Static or NotInheritable
     {
         public static readonly Option<bool> verboseOption = new Option<bool>(
             new string[] { "--verbose", "-v" },
@@ -118,7 +120,7 @@ namespace Turkey
 
             Version packageVersion = runtimeVersion;
             string nuGetConfig = await GenerateNuGetConfigIfNeededAsync(additionalFeed, packageVersion,
-                                                                        useSourceBuildNuGetConfig: false);
+                                                                        useSourceBuildNuGetConfig: false).ConfigureAwait(false);
             if (verbose && nuGetConfig != null)
             {
                 Console.WriteLine("Using nuget.config: ");
@@ -132,7 +134,7 @@ namespace Turkey
                 verboseOutput: verbose,
                 nuGetConfig: nuGetConfig);
 
-            var results = await runner.ScanAndRunAsync(testOutputs, logDir.FullName, defaultTimeout);
+            var results = await runner.ScanAndRunAsync(testOutputs, logDir.FullName, defaultTimeout).ConfigureAwait(false);
 
             int exitCode = (results.Failed == 0) ? 0 : 1;
             return exitCode;
@@ -157,7 +159,7 @@ namespace Turkey
                 {
                     try
                     {
-                        nugetConfig = await sourceBuild.GetNuGetConfigAsync(netCoreAppVersion);
+                        nugetConfig = await sourceBuild.GetNuGetConfigAsync(netCoreAppVersion).ConfigureAwait(false);
                     }
                     catch( HttpRequestException exception )
                     {
@@ -173,14 +175,16 @@ namespace Turkey
                     // if the nugetConfig has a <clear/> element that removes
                     // it.
                     urls.Add("https://api.nuget.org/v3/index.json");
-                    return await nuget.GenerateNuGetConfig(urls, nugetConfig);
+                    return await nuget.GenerateNuGetConfig(urls, nugetConfig).ConfigureAwait(false);
                 }
             }
 
             return null;
         }
 
+#pragma warning disable CA1801 // Remove unused parameter
         public static IReadOnlySet<string> CreateTraits(Version runtimeVersion, Version sdkVersion, List<string> rids, bool isMonoRuntime, IEnumerable<string> additionalTraits)
+#pragma warning restore CA1801 // Remove unused parameter
         {
             var traits = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -199,7 +203,9 @@ namespace Turkey
             }
 
             // Add 'arch=' trait.
+#pragma warning disable CA1308 // Normalize strings to uppercase
             string arch = RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant();
+#pragma warning restore CA1308 // Normalize strings to uppercase
             traits.Add($"arch={arch}");
 
             // Add 'runtime=' trait.
@@ -231,7 +237,7 @@ namespace Turkey
             rootCommand.AddOption(traitOption);
             rootCommand.AddOption(timeoutOption);
 
-            return await rootCommand.InvokeAsync(args);
+            return await rootCommand.InvokeAsync(args).ConfigureAwait(false);
         }
     }
 }
