@@ -38,7 +38,7 @@ namespace Turkey
                 startInfo.EnvironmentVariables.Add(key, value);
             }
 
-            int exitCode = await ProcessRunner.RunAsync(startInfo, logger, cancellationToken);
+            int exitCode = await ProcessRunner.RunAsync(startInfo, logger, cancellationToken).ConfigureAwait(false);
 
             return exitCode == 0 ? TestResult.Passed : TestResult.Failed;
         }

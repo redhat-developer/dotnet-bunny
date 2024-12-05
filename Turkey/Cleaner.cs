@@ -36,7 +36,9 @@ namespace Turkey
             yield return "project.lock.json";
         }
 
-        public async Task CleanProjectLocalDotNetCruftAsync()
+#pragma warning disable CA1822 // Mark members as static
+        public Task CleanProjectLocalDotNetCruftAsync()
+#pragma warning restore CA1822 // Mark members as static
         {
 
             foreach(var name in LocalProjectCruft())
@@ -51,9 +53,12 @@ namespace Turkey
                     File.Delete(name);
                 }
             }
+            return Task.CompletedTask;
         }
 
-        public async Task CleanLocalDotNetCacheAsync()
+#pragma warning disable CA1822 // Mark members as static
+        public Task CleanLocalDotNetCacheAsync()
+#pragma warning restore CA1822 // Mark members as static
         {
             foreach (var path in CruftDirectoryGlobs())
             {
@@ -77,12 +82,14 @@ namespace Turkey
                     Console.WriteLine($"WARNING: unable to expand {path}");
                 }
             }
-            return;
+            return Task.CompletedTask;
         }
 
+#pragma warning disable CA1822 // Mark members as static
         public IEnumerable<string> ExpandPath(string pathWithGlob)
+#pragma warning restore CA1822 // Mark members as static
         {
-            if (pathWithGlob.StartsWith("~"))
+            if (pathWithGlob.StartsWith("~", StringComparison.Ordinal))
             {
                 pathWithGlob = Environment.GetEnvironmentVariable("HOME") + pathWithGlob.Substring(1);
             }

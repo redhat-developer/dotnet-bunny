@@ -43,7 +43,7 @@ namespace Turkey
                     string output = p.StandardOutput.ReadToEnd();
                     var list = output
                         .Split("\n", StringSplitOptions.RemoveEmptyEntries)
-                        .Where(line => line.StartsWith("Microsoft.NETCore.App"))
+                        .Where(line => line.StartsWith("Microsoft.NETCore.App", StringComparison.Ordinal))
                         .Select(line => line.Split(" ")[1])
                         .Select(versionString => Version.Parse(versionString))
                         .OrderBy(x => x)
@@ -137,7 +137,7 @@ namespace Turkey
                 startInfo.EnvironmentVariables.Add(key, value);
             }
 
-            return await ProcessRunner.RunAsync(startInfo, logger, token);
+            return await ProcessRunner.RunAsync(startInfo, logger, token).ConfigureAwait(false);
         }
 
         private static bool IsCoreClrRuntime(string dotnetRoot, Version version)
@@ -159,7 +159,9 @@ namespace Turkey
             return File.Exists(Path.Combine(runtimeDir, "libcoreclrtraceptprovider.so"));
         }
 
+        #nullable enable
         private static string? FindProgramInPath(string program)
+        #nullable disable
         {
             string[] paths = Environment.GetEnvironmentVariable("PATH")?.Split(':', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
             foreach (string p in paths)
