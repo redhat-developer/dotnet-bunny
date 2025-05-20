@@ -22,7 +22,7 @@ namespace Turkey
         public Version RuntimeVersion { get; }
         public Version SdkVersion { get; }
         public List<string> CurrentPlatformIds { get; }
-        public IReadOnlyDictionary<string, string> EnvironmentVariables;
+        internal IReadOnlyDictionary<string, string> EnvironmentVariables;
         public IReadOnlySet<string> Traits { get; }
         public DotNet Dotnet { get; }
 
@@ -44,12 +44,12 @@ namespace Turkey
 
     public class TestOutput
     {
-        public async virtual Task AtStartupAsync() {}
-        public async virtual Task BeforeTestAsync() {}
-        public async virtual Task AfterParsingTestAsync(string name, bool enabled) {}
-        public async virtual Task AfterRunningTestAsync(string name, TestResult result, StringBuilder testLog, TimeSpan testTime) {}
-        public async virtual Task PrintFailedTests() {}
-        public async virtual Task AfterRunningAllTestsAsync(TestResults results) {}
+        public virtual Task AtStartupAsync() { return Task.CompletedTask; }
+        public virtual Task BeforeTestAsync() { return Task.CompletedTask; }
+        public virtual Task AfterParsingTestAsync(string name, bool enabled) { return Task.CompletedTask; }
+        public virtual Task AfterRunningTestAsync(string name, TestResult result, StringBuilder testLog, TimeSpan testTime) { return Task.CompletedTask; }
+        public virtual Task PrintFailedTests() { return Task.CompletedTask; }
+        public virtual Task AfterRunningAllTestsAsync(TestResults results) { return Task.CompletedTask; }
     }
 
     public class TestRunner
@@ -72,7 +72,7 @@ namespace Turkey
         public async Task<TestResults> ScanAndRunAsync(List<TestOutput> outputs, string logDir, TimeSpan defaultTimeout)
         {
 
-            await outputs.ForEachAsync(output => output.AtStartupAsync());
+            await outputs.ForEachAsync(output => output.AtStartupAsync()).ConfigureAwait(false);
 
             TestResults results = new TestResults();
 
@@ -93,10 +93,10 @@ namespace Turkey
             foreach (var file in sortedFiles)
             {
                 testTimeWatch.Reset();
-                await cleaner.CleanLocalDotNetCacheAsync();
+                await cleaner.CleanLocalDotNetCacheAsync().ConfigureAwait(false);
 
                 testTimeWatch.Start();
-                var parsedTest = await parser.TryParseAsync(system, nuGetConfig, file);
+                var parsedTest = await parser.TryParseAsync(system, nuGetConfig, file).ConfigureAwait(false);
                 if (!parsedTest.Success)
                 {
                     Console.WriteLine($"WARNING: Unable to parse {file}");
@@ -105,7 +105,7 @@ namespace Turkey
                 var test = parsedTest.Test;
                 string testName = test.Descriptor.Name;
 
-                await outputs.ForEachAsync(output => output.AfterParsingTestAsync(testName, !test.Skip));
+                await outputs.ForEachAsync(output => output.AfterParsingTestAsync(testName, !test.Skip)).ConfigureAwait(false);
 
                 TimeSpan testTimeout = test.Descriptor.TimeoutMultiplier * defaultTimeout;
                 using var cts = testTimeout == TimeSpan.Zero ? null : new CancellationTokenSource(testTimeout);
@@ -125,13 +125,13 @@ namespace Turkey
 
                 if (test.Descriptor.Cleanup)
                 {
-                    await cleaner.CleanProjectLocalDotNetCruftAsync();
+                    await cleaner.CleanProjectLocalDotNetCruftAsync().ConfigureAwait(false);
                 }
 
                 TestResult testResult;
                 try
                 {
-                    testResult = await test.RunAsync(testLogger, cancellationToken);
+                    testResult = await test.RunAsync(testLogger, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -149,15 +149,15 @@ namespace Turkey
                     case TestResult.Skipped: results.Skipped++; break;
                 }
 
-                await outputs.ForEachAsync(output => output.AfterRunningTestAsync(testName, testResult, testLog, testTimeWatch.Elapsed));
+                await outputs.ForEachAsync(output => output.AfterRunningTestAsync(testName, testResult, testLog, testTimeWatch.Elapsed)).ConfigureAwait(false);
                 }
             
             if (results.Failed != 0 )
             {
-                await outputs.ForEachAsync(outputs => outputs.PrintFailedTests());
+                await outputs.ForEachAsync(outputs => outputs.PrintFailedTests()).ConfigureAwait(false);
             }
 
-            await outputs.ForEachAsync(output => output.AfterRunningAllTestsAsync(results));
+            await outputs.ForEachAsync(output => output.AfterRunningAllTestsAsync(results)).ConfigureAwait(false);
 
             return results;
         }

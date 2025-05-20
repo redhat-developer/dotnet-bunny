@@ -18,8 +18,12 @@ namespace Turkey
         public string Type { get; set; }
         public bool Cleanup { get; set; }
         public double TimeoutMultiplier { get; set; } = 1.0;
+
+        #pragma warning disable CA2227 // Change to be read-only by removing the property setter.
         public List<string> IgnoredRIDs { get; set; } = new();
         public List<string> SkipWhen { get; set; } = new();
+
+        #pragma warning restore CA2227
     }
 
     // TODO is this a strongly-typed enum in C#?
@@ -58,10 +62,10 @@ namespace Turkey
                 {
                     Console.WriteLine($"WARNING: overwriting {path}");
                 }
-                await File.WriteAllTextAsync(path, NuGetConfig);
+                await File.WriteAllTextAsync(path, NuGetConfig).ConfigureAwait(false);
             }
 
-            var testResult = await InternalRunAsync(logger, cancelltionToken);
+            var testResult = await InternalRunAsync(logger, cancelltionToken).ConfigureAwait(false);
 
             if (!string.IsNullOrEmpty(NuGetConfig))
             {

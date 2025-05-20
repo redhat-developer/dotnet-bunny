@@ -16,8 +16,8 @@ namespace Turkey
 
         protected override async Task<TestResult> InternalRunAsync(Action<string> logger, CancellationToken cancellationToken)
         {
-            bool success =    await BuildProjectAsync(logger, cancellationToken) == 0
-                           && await RunTestProjectAsync(logger, cancellationToken) == 0;
+            bool success =    await BuildProjectAsync(logger, cancellationToken).ConfigureAwait(false) == 0
+                           && await RunTestProjectAsync(logger, cancellationToken).ConfigureAwait(false) == 0;
 
             return success ? TestResult.Passed : TestResult.Failed;
         }

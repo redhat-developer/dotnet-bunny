@@ -16,11 +16,12 @@ namespace Turkey
             this._client = client;
         }
 
-        public string GetBranchContentUrl(Version version)
+        public static System.Uri GetBranchContentUrl(Version version)
         {
             var branchName = "release/" + version.MajorMinor + ".1xx";
             var url = $"https://raw.githubusercontent.com/dotnet/installer/{branchName}/";
-            return url;
+            Uri uri = new(url);
+            return uri;
         }
 
         public async Task<string> GetProdConFeedAsync(Version version)
@@ -31,9 +32,10 @@ namespace Turkey
             }
 
             var url = GetBranchContentUrl(version) + "ProdConFeed.txt";
-            var feedUrl = await _client.GetStringAsync(url);
-
-            using(var response = await _client.GetAsync(feedUrl))
+            Uri uri = new(url);
+            var feedUrl = await _client.GetStringAsync(uri).ConfigureAwait(false);
+            Uri feedUri = new(feedUrl);
+            using(var response = await _client.GetAsync(feedUri).ConfigureAwait(false))
             {
                 if (!response.IsSuccessStatusCode)
                 {
@@ -46,11 +48,12 @@ namespace Turkey
         public async Task<string> GetNuGetConfigAsync(Version version)
         {
             string url = GetBranchContentUrl(version) + "NuGet.config";
+            Uri uri = new(url);
 
             string nugetConfig = null;
             try
             {
-                nugetConfig = await _client.GetStringAsync(url);
+                nugetConfig = await _client.GetStringAsync(uri).ConfigureAwait(false);
             }
             catch( HttpRequestException e )
             {
