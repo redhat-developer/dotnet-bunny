@@ -104,7 +104,7 @@ namespace Turkey
             var sanitizer = new EnvironmentVariableSanitizer();
             var envVars = sanitizer.SanitizeCurrentEnvironmentVariables();
 
-            var traits = CreateTraits(runtimeVersion, dotnet.LatestSdkVersion, platformIds, dotnet.IsMonoRuntime(runtimeVersion), trait);
+            var traits = CreateTraits(runtimeVersion, dotnet.LatestSdkVersion, platformIds, dotnet.IsMonoRuntime(runtimeVersion), runtimeVersion.Release, trait);
             Console.WriteLine($"Tests matching these traits will be skipped: {string.Join(", ", traits.OrderBy(s => s))}.");
 
             envVars["TestTargetFramework"] = $"net{runtimeVersion.Major}.{runtimeVersion.Minor}";
@@ -183,7 +183,7 @@ namespace Turkey
         }
 
 #pragma warning disable CA1801 // Remove unused parameter
-        public static IReadOnlySet<string> CreateTraits(Version runtimeVersion, Version sdkVersion, List<string> rids, bool isMonoRuntime, IEnumerable<string> additionalTraits)
+        public static IReadOnlySet<string> CreateTraits(Version runtimeVersion, Version sdkVersion, List<string> rids, bool isMonoRuntime, string release, IEnumerable<string> additionalTraits)
 #pragma warning restore CA1801 // Remove unused parameter
         {
             var traits = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -191,6 +191,9 @@ namespace Turkey
             // Add 'version=' traits.
             traits.Add($"version={runtimeVersion.Major}.{runtimeVersion.Minor}");
             traits.Add($"version={runtimeVersion.Major}");
+
+            // Add 'status=' trait.
+            traits.Add($"status={runtimeVersion.Release}");
 
             // Add 'os=', 'rid=' traits.
             foreach (var rid in rids)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Linq;
 using Xunit;
+using Microsoft.VisualBasic;
 
 namespace Turkey.Tests
 {
@@ -51,22 +52,24 @@ namespace Turkey.Tests
             Version runtimeVersion = Version.Parse("6.5");
             Version sdkVersion = Version.Parse("3.1");
 
-            string[] expectedVersionTraits = new[] { "version=6.5", "version=6" };
+            var release = "released";
+
+            string[] expectedVersionTraits = new[] { "version=6.5", "version=6", "status=released" };
             string expectedArch = $"arch={OSArchitectureName}";
 
             // default traits.
-            yield return new object[] { runtimeVersion, sdkVersion, Array.Empty<string>(), false, Array.Empty<string>(), CombineTraits() };
+            yield return new object[] { runtimeVersion, sdkVersion, release, Array.Empty<string>(), false, Array.Empty<string>(), CombineTraits() };
 
             // 'runtime=mono'
-            yield return new object[] { runtimeVersion, sdkVersion, Array.Empty<string>(), true, Array.Empty<string>(), CombineTraits(isMonoRuntime: true) };
+            yield return new object[] { runtimeVersion, sdkVersion, release, Array.Empty<string>(), true, Array.Empty<string>(), CombineTraits(isMonoRuntime: true) };
 
             // 'os=..' and 'rid=...' are added for the platform rids.
-            yield return new object[] { runtimeVersion, sdkVersion, new[] { "linux-x64", "fedora.37-x64", "linux-musl-x64" }, false, Array.Empty<string>(),
+            yield return new object[] { runtimeVersion, sdkVersion, release, new[] { "linux-x64", "fedora.37-x64", "linux-musl-x64" }, false, Array.Empty<string>(),
                                     CombineTraits(new[] { "os=linux", "os=fedora.37", "os=linux-musl",
                                                           "rid=linux-x64", "rid=fedora.37-x64", "rid=linux-musl-x64" } ) };
 
             // additional traits are added.
-            yield return new object[] { runtimeVersion, sdkVersion, Array.Empty<string>(), false, new[] { "blue", "green" },
+            yield return new object[] { runtimeVersion, sdkVersion, release, Array.Empty<string>(), false, new[] { "blue", "green" },
                                             CombineTraits(new[] { "blue", "green" } ) };
 
             string[] CombineTraits(string[] expectedAdditionalTraits = null, bool isMonoRuntime = false)
@@ -79,9 +82,9 @@ namespace Turkey.Tests
 
         [Theory]
         [MemberData(nameof(SystemTraits_MemberData))]
-        public void SystemTraits(Version runtimeVersion, Version sdkVersion, string[] rids, bool isMonoRuntime, string[] additionalTraits, string[] expectedTraits)
+        public void SystemTraits(Version runtimeVersion, Version sdkVersion, string release, string[] rids, bool isMonoRuntime, string[] additionalTraits, string[] expectedTraits)
         {
-            IReadOnlySet<string> systemTraits = Program.CreateTraits(runtimeVersion, sdkVersion, new List<string>(rids), isMonoRuntime, additionalTraits);
+            IReadOnlySet<string> systemTraits = Program.CreateTraits(runtimeVersion, sdkVersion, new List<string>(rids), isMonoRuntime, release, additionalTraits);
 
             Assert.Equal(expectedTraits.OrderBy(s => s), systemTraits.OrderBy(s => s));
         }

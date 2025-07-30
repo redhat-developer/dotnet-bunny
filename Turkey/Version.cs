@@ -11,6 +11,8 @@ namespace Turkey
         public int Minor { get; }
         public string MajorMinor { get; }
 
+        public string Release { get; }
+
         private List<string> parts = null;
 
         public static Version Parse(string input)
@@ -26,9 +28,10 @@ namespace Turkey
             {
                 throw new FormatException();
             }
-            if (parts.Count() == 1)
+            if (parts.Count() <= 2)
             {
-                parts.Add("0");
+                while (parts.Count() <= 2)
+                { parts.Add("0"); }
             }
             int.Parse(parts[0], CultureInfo.InvariantCulture);
             int.Parse(parts[1], CultureInfo.InvariantCulture);
@@ -42,6 +45,21 @@ namespace Turkey
             this.Major = int.Parse(parts[0], CultureInfo.InvariantCulture);
             this.Minor = int.Parse(parts[1], CultureInfo.InvariantCulture);
             this.MajorMinor = this.Major + "." + this.Minor;
+
+            string status = "";
+            if (parts[2].Contains("preview", StringComparison.Ordinal))
+            {
+                status = "preview";
+            }
+            else if (parts[2].Contains("rc", StringComparison.Ordinal))
+            {
+                status = "rc";
+            }
+            else
+            {
+                status = "released";
+            }
+            this.Release = status;
         }
 
         public override string ToString()

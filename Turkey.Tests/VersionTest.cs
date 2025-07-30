@@ -102,7 +102,7 @@ namespace Turkey.Tests
         public void TestToString()
         {
             var v1 = Version.Parse("1.0");
-            Assert.Equal("1.0", v1.ToString());
+            Assert.Equal("1.0.0", v1.ToString());
         }
     }
 }

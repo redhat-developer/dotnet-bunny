@@ -16,14 +16,22 @@ jobs:
         container_image:
           - quay.io/centos/centos:stream9
           - quay.io/centos/centos:stream10
-          - registry.fedoraproject.org/fedora:40
           - registry.fedoraproject.org/fedora:41
+          - registry.fedoraproject.org/fedora:42
           - registry.fedoraproject.org/fedora:rawhide
           - registry.access.redhat.com/ubi8
           - registry.access.redhat.com/ubi9
+          - registry.access.redhat.com/ubi10
         dotnet_version:
           - "8.0"
           - "9.0"
+        include:
+          - container_image: registry.fedoraproject.org/fedora:42
+            dotnet_version: "10.0"
+          - container_image: registry.fedoraproject.org/fedora:rawhide
+            dotnet_version: "10.0"
+          - container_image: quay.io/centos/centos:stream10
+            dotnet_version: "10.0"
           
     container:
       image: ${{ matrix.container_image }}
@@ -34,12 +42,20 @@ jobs:
         timeout-minutes: 5
         run: |
           set -euo pipefail
+          if [[ ${{ matrix.dotnet_version }} == 10.* ]]; then
+            dnf install 'dnf-command(copr)' -y
+            if grep centos /etc/os-release; then
+              dnf copr enable @dotnet-sig/dotnet-preview centos-stream-10-x86_64 -y
+            else
+              dnf copr enable @dotnet-sig/dotnet-preview -y
+            fi
+          fi
           dnf install -y dotnet-sdk-${{ matrix.dotnet_version }} git make
           dnf install -y \
             dotnet-sdk-dbg-${{ matrix.dotnet_version }} \
             dotnet-runtime-dbg-${{ matrix.dotnet_version }} \
             aspnetcore-runtime-dbg-${{ matrix.dotnet_version }}
-          if [[ ${{ matrix.dotnet_version }} == 9.* ]]; then
+          if [[ ${{ matrix.dotnet_version }} != 8.* ]]; then
             dnf install -y dotnet-sdk-aot-${{ matrix.dotnet_version }}
           fi
 
@@ -78,14 +94,22 @@ jobs:
         container_image:
           - quay.io/centos/centos:stream9
           - quay.io/centos/centos:stream10
-          - registry.fedoraproject.org/fedora:40
           - registry.fedoraproject.org/fedora:41
+          - registry.fedoraproject.org/fedora:42
           - registry.fedoraproject.org/fedora:rawhide
           - registry.access.redhat.com/ubi8
           - registry.access.redhat.com/ubi9
+          - registry.access.redhat.com/ubi10
         dotnet_version:
           - "8.0"
           - "9.0"
+        include:
+          - container_image: registry.fedoraproject.org/fedora:42
+            dotnet_version: "10.0"
+          - container_image: registry.fedoraproject.org/fedora:rawhide
+            dotnet_version: "10.0"
+          - container_image: quay.io/centos/centos:stream10
+            dotnet_version: "10.0"
 
     container:
       image: ${{ matrix.container_image }}
@@ -96,12 +120,20 @@ jobs:
         timeout-minutes: 5
         run: |
           set -euo pipefail
+          if [[ ${{ matrix.dotnet_version }} == 10.* ]]; then
+            dnf install 'dnf-command(copr)' -y
+            if grep centos /etc/os-release; then
+              dnf copr enable @dotnet-sig/dotnet-preview centos-stream-10-x86_64 -y
+            else
+              dnf copr enable @dotnet-sig/dotnet-preview -y
+            fi
+          fi
           dnf install -y dotnet-sdk-${{ matrix.dotnet_version }} git make
           dnf install -y \
             dotnet-sdk-dbg-${{ matrix.dotnet_version }} \
             dotnet-runtime-dbg-${{ matrix.dotnet_version }} \
             aspnetcore-runtime-dbg-${{ matrix.dotnet_version }}
-          if [[ ${{ matrix.dotnet_version }} == 9.* ]]; then
+          if [[ ${{ matrix.dotnet_version }} != 8.* ]]; then
             dnf install -y dotnet-sdk-aot-${{ matrix.dotnet_version }}
           fi
 
