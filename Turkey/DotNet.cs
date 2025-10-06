@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 
@@ -62,10 +63,10 @@ namespace Turkey
         }
 
         public bool IsCoreClrRuntime(Version runtimeVersion)
-            => IsCoreClrRuntime(DotnetRoot, runtimeVersion);
+            => !IsMonoRuntime(runtimeVersion);
 
         public bool IsMonoRuntime(Version runtimeVersion)
-            => !IsCoreClrRuntime(runtimeVersion);
+            => IsMonoRuntime(DotnetRoot, runtimeVersion);
 
         public List<Version> SdkVersions
         {
@@ -140,23 +141,36 @@ namespace Turkey
             return await ProcessRunner.RunAsync(startInfo, logger, token).ConfigureAwait(false);
         }
 
-        private static bool IsCoreClrRuntime(string dotnetRoot, Version version)
+        private static bool IsMonoRuntime(string dotnetRoot, Version version)
         {
-            string[] runtimeDirectories = Directory.GetDirectories(Path.Combine(dotnetRoot, "shared", "Microsoft.NETCore.App"))
-                                            .Where(dir => Version.Parse(Path.GetFileName(dir)) == version)
-                                            .ToArray();
-            if (runtimeDirectories.Length == 0)
+            var libcoreclrPath = Path.Combine(dotnetRoot, "shared", "Microsoft.NETCore.App", version.ToString(), "libcoreclr.so");
+
+            if (!File.Exists(libcoreclrPath))
             {
-                throw new DirectoryNotFoundException($"No runtime directory for {version} found in {dotnetRoot}.");
+                throw new FileNotFoundException($"libcoreclr.so not found at {libcoreclrPath}");
             }
 
-            if (runtimeDirectories.Length > 1)
+            var monoMarkers = new[]
             {
-                throw new DirectoryNotFoundException($"Multiple runtime directories found for {version} in {dotnetRoot}.");
+                "mono_jit_init",
+                "mono_class_get",
+                "mono_runtime_class_init",
+                "mono_thread_set_main"
+            };
+
+            byte[] fileBytes = File.ReadAllBytes(libcoreclrPath);
+            ReadOnlySpan<byte> fileSpan = fileBytes.AsSpan();
+            foreach (var marker in monoMarkers)
+            {
+                byte[] markerBytes = Encoding.ASCII.GetBytes(marker);
+
+                if (fileSpan.IndexOf(markerBytes) != -1)
+                {
+                    return true;
+                }
             }
 
-            string runtimeDir = runtimeDirectories[0];
-            return File.Exists(Path.Combine(runtimeDir, "libcoreclrtraceptprovider.so"));
+            return false;
         }
 
         #nullable enable
