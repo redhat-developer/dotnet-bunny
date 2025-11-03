@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          dnf install -y dotnet-sdk-6.0 git make
+          dnf install -y dotnet-sdk-8.0 git make
 
       - uses: actions/checkout@v3
         with:
@@ -34,7 +34,7 @@ jobs:
           make publish
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: release-binaries
           path: turkey.tar.gz
