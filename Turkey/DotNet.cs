@@ -143,6 +143,19 @@ namespace Turkey
 
         private static bool IsMonoRuntime(string dotnetRoot, Version version)
         {
+            bool usingHeaders = IsMonoRuntimeUsingHeaders(dotnetRoot, version);
+            bool usingSymbols = IsMonoRuntimeUsingSymbols(dotnetRoot, version);
+
+            if (usingHeaders != usingSymbols)
+            {
+                Console.WriteLine($"Warning: Mono runtime detection mismatch for version {version}. Headers: {usingHeaders}, Symbols: {usingSymbols}");
+            }
+
+            return usingHeaders || usingSymbols;
+        }
+
+        private static bool IsMonoRuntimeUsingSymbols(string dotnetRoot, Version version)
+        {
             var libcoreclrPath = Path.Combine(dotnetRoot, "shared", "Microsoft.NETCore.App", version.ToString(), "libcoreclr.so");
 
             if (!File.Exists(libcoreclrPath))
@@ -171,6 +184,14 @@ namespace Turkey
             }
 
             return false;
+        }
+
+        private static bool IsMonoRuntimeUsingHeaders(string dotnetRoot, Version version)
+        {
+            var runtimeDirectory = Path.Combine(dotnetRoot, "shared", "Microsoft.NETCore.App", version.ToString());
+            var monoGcHeaderPath = Path.Combine(runtimeDirectory, "mono-gc.h");
+
+            return File.Exists(monoGcHeaderPath);
         }
 
         #nullable enable
