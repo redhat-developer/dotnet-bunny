@@ -94,7 +94,7 @@ namespace Turkey.Tests
                 Architecture.Arm => "arm",
                 Architecture.Arm64 => "arm64",
                 Architecture.S390x => "s390x",
-                (Architecture)8 => "ppc64le", // not defined for 'net6.0' target.
+                Architecture.Ppc64le => "ppc64le",
                 _ => throw new NotSupportedException(),
             };
     }
