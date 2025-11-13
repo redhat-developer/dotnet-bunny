@@ -31,26 +31,14 @@ namespace Turkey
         {
             get
             {
-                ProcessStartInfo startInfo = new ProcessStartInfo()
-                {
-                    FileName = DotnetFileName,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    Arguments = "--list-runtimes",
-                };
-                using (Process p = Process.Start(startInfo))
-                {
-                    p.WaitForExit();
-                    string output = p.StandardOutput.ReadToEnd();
-                    var list = output
-                        .Split("\n", StringSplitOptions.RemoveEmptyEntries)
-                        .Where(line => line.StartsWith("Microsoft.NETCore.App", StringComparison.Ordinal))
-                        .Select(line => line.Split(" ")[1])
-                        .Select(versionString => Version.Parse(versionString))
-                        .OrderBy(x => x)
-                        .ToList();
-                    return list;
-                }
+                string output = ProcessRunner.Run(DotnetFileName, "--list-runtimes");
+                return output
+                    .Split("\n", StringSplitOptions.RemoveEmptyEntries)
+                    .Where(line => line.StartsWith("Microsoft.NETCore.App", StringComparison.Ordinal))
+                    .Select(line => line.Split(" ")[1])
+                    .Select(versionString => Version.Parse(versionString))
+                    .OrderBy(x => x)
+                    .ToList();
             }
         }
 
@@ -72,25 +60,14 @@ namespace Turkey
         {
             get
             {
-                ProcessStartInfo startInfo = new ProcessStartInfo()
-                    {
-                        FileName = DotnetFileName,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        Arguments = "--list-sdks",
-                    };
-                using (Process p = Process.Start(startInfo))
-                {
-                    p.WaitForExit();
-                    string output = p.StandardOutput.ReadToEnd();
-                    var list = output
+                
+                string output = ProcessRunner.Run(DotnetFileName, "--list-sdks");
+                return output
                         .Split("\n", StringSplitOptions.RemoveEmptyEntries)
                         .Select(line => line.Split(" ")[0])
                         .Select(versionString => Version.Parse(versionString))
                         .OrderBy(x => x)
                         .ToList();
-                    return list;
-                }
             }
         }
 

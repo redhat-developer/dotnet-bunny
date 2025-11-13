@@ -71,6 +71,7 @@ namespace Turkey
 
         public async Task<TestResults> ScanAndRunAsync(List<TestOutput> outputs, string logDir, TimeSpan defaultTimeout)
         {
+            LogEnvironment(logDir);
 
             await outputs.ForEachAsync(output => output.AtStartupAsync()).ConfigureAwait(false);
 
@@ -160,6 +161,23 @@ namespace Turkey
             await outputs.ForEachAsync(output => output.AfterRunningAllTestsAsync(results)).ConfigureAwait(false);
 
             return results;
+        }
+
+        private static void LogEnvironment(string logDir)
+        {
+            foreach (var sourcePath in new[] { "/proc/cpuinfo", "/proc/meminfo", "/etc/os-release" })
+            {
+                if (File.Exists(sourcePath))
+                {
+                    string destinationPath = Path.Combine(logDir, Path.GetFileName(sourcePath));
+                    // Note: we don't use File.Copy because that copies the file permissions,
+                    //       which gives issues on successive runs since the files are non-writable.
+                    File.WriteAllBytes(destinationPath, File.ReadAllBytes(sourcePath));
+                }
+            }
+
+            string unameOutput = ProcessRunner.Run("uname", "-a");
+            File.WriteAllText(Path.Combine(logDir, "uname"), unameOutput);
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -14,6 +15,33 @@ namespace Turkey
             using var process = Process.Start(psi);
             await process.WaitForExitAsync(logger, token).ConfigureAwait(false);
             return process.ExitCode;
+        }
+
+        public static string Run(string filename, params string[] args)
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo()
+            {
+                FileName = filename,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+            foreach (var arg in args)
+            {
+                startInfo.ArgumentList.Add(arg);
+            }
+            using (Process p = Process.Start(startInfo))
+            {
+                p.StandardInput.Close();
+                string stdout = p.StandardOutput.ReadToEnd();
+                p.WaitForExit();
+                if (p.ExitCode != 0)
+                {
+                    string stderr = p.StandardError.ReadToEnd();
+                    throw new InvalidOperationException($"Executing {filename} {string.Join(' ', args)} failed with exit code {p.ExitCode} and stderr: {stderr}");
+                }
+                return stdout;
+            }
         }
     }
 
