@@ -192,6 +192,6 @@ jobs:
         run: |
           set -euo pipefail
           cat cpuinfo meminfo os-release
-          cat uname
+          cat uname.log
           cat packages
           find -iname '*.log' -exec echo {} \; -exec cat {} \;

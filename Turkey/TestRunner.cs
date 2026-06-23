@@ -178,7 +178,7 @@ namespace Turkey
             }
 
             string unameOutput = ProcessRunner.Run("uname", "-a");
-            File.WriteAllText(Path.Combine(logDir, "uname"), unameOutput);
+            File.WriteAllText(Path.Combine(logDir, "uname.log"), unameOutput);
 
             try
             {
