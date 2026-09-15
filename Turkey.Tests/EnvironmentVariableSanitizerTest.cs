@@ -10,14 +10,13 @@ namespace Turkey.Tests
     public class EnvironmentVariableSanitizerTest
     {
         [Theory]
-        // TODO enable these too
-        // [InlineData("ASPNETCORE_URLS")]
-        // [InlineData("COREHOST_TRACE")]
-        // [InlineData("DOTNET_FOO_BAR")]
-        // [InlineData("DOTNET_ROLL_FORWARD")]
-        // [InlineData("DOTNET_RUNTIME_ID")]
-        // [InlineData("DOTNET_STARTUP_HOOKS")]
-        // [InlineData("NUGET_PACKAGES")]
+        [InlineData("ASPNETCORE_URLS")]
+        [InlineData("COREHOST_TRACE")]
+        [InlineData("DOTNET_FOO_BAR")]
+        [InlineData("DOTNET_ROLL_FORWARD")]
+        [InlineData("DOTNET_RUNTIME_ID")]
+        [InlineData("DOTNET_STARTUP_HOOKS")]
+        [InlineData("NUGET_PACKAGES")]
         [InlineData("OPENSSL_CONF")]
         public void EnvironmentVariablesAreRemoved(string name)
         {
