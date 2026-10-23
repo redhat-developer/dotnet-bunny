@@ -88,6 +88,7 @@ namespace Turkey
 
             DotNet dotnet = new DotNet();
             Version runtimeVersion = dotnet.LatestRuntimeVersion;
+            Console.WriteLine($"SDK: {dotnet.LatestSdkVersion} ({RuntimeInformation.RuntimeIdentifier})");
 
             TestOutput defaultOutput = new TestOutputFormats.NewOutput();
 

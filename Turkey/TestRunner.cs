@@ -72,7 +72,7 @@ namespace Turkey
 
         public async Task<TestResults> ScanAndRunAsync(List<TestOutput> outputs, string logDir, TimeSpan defaultTimeout)
         {
-            LogEnvironment(logDir);
+            LogEnvironment(logDir, system.Dotnet);
 
             await outputs.ForEachAsync(output => output.AtStartupAsync()).ConfigureAwait(false);
 
@@ -164,7 +164,7 @@ namespace Turkey
             return results;
         }
 
-        private static void LogEnvironment(string logDir)
+        private static void LogEnvironment(string logDir, DotNet dotnet)
         {
             foreach (var sourcePath in new[] { "/proc/cpuinfo", "/proc/meminfo", "/etc/os-release" })
             {
@@ -179,6 +179,14 @@ namespace Turkey
 
             string unameOutput = ProcessRunner.Run("uname", "-a");
             File.WriteAllText(Path.Combine(logDir, "uname.log"), unameOutput);
+
+            try
+            {
+                string dotnetInfoOutput = dotnet.GetInfo();
+                File.WriteAllText(Path.Combine(logDir, "dotnetinfo"), dotnetInfoOutput);
+            }
+            catch (Exception e) when (e is InvalidOperationException or FileNotFoundException)
+            { }
 
             try
             {

@@ -79,6 +79,11 @@ namespace Turkey
             }
         }
 
+        public string GetInfo()
+        {
+            return ProcessRunner.Run(DotnetFileName, "--info");
+        }
+
         public Task<int> BuildAsync(DirectoryInfo workingDirectory, IReadOnlyDictionary<string, string> environment, Action<string> logger, CancellationToken token)
         {
             var arguments = new string[]
