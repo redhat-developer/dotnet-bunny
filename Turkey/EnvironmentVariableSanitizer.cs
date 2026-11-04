@@ -5,14 +5,30 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
+
 
 namespace Turkey
 {
     public class EnvironmentVariableSanitizer
-    {
-        private readonly List<string> ToFilter = new List<string>()
+    {  
+       private readonly List<string> ToFilter = new List<string>()
         {
             "OPENSSL_CONF",
+            "ASPNETCORE_URLS",
+            "NUGET_PACKAGES",
+            "COREHOST_TRACE"
+        };
+
+        private readonly List<string> FilterPrefixes = new List<string>()
+        {
+            "DOTNET_",
+            "CLR_",
+        };
+
+        private readonly List<string> AllowList = new List<string>()
+        {
+            "DOTNET_ROOT",
         };
 
         public Dictionary<string, string> SanitizeCurrentEnvironmentVariables()
@@ -26,15 +42,32 @@ namespace Turkey
 
             foreach (DictionaryEntry entry in environmentVariables)
             {
-                if (ToFilter.Contains((string)entry.Key))
+                var name = (string)entry.Key;
+ 
+                if (ShouldFilter(name))
                 {
                     continue;
                 }
-
-                result.Add((string)entry.Key, (string)entry.Value);
+ 
+                result.Add(name, (string)entry.Value);
             }
 
             return result;
+        }
+
+        public bool ShouldFilter(string name)
+        {
+            if (AllowList.Contains(name))
+            {
+                return false;
+            }
+ 
+            if (ToFilter.Contains(name))
+            {
+                return true;
+            }
+ 
+            return FilterPrefixes.Any(prefix => name.StartsWith(prefix, StringComparison.Ordinal));
         }
     }
 }

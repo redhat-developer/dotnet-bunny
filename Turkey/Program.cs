@@ -104,6 +104,16 @@ namespace Turkey
             var sanitizer = new EnvironmentVariableSanitizer();
             var envVars = sanitizer.SanitizeCurrentEnvironmentVariables();
 
+            var removed = Environment.GetEnvironmentVariables().Keys.Cast<string>().Where(sanitizer.ShouldFilter).OrderBy(name => name, StringComparer.OrdinalIgnoreCase);
+            if (!removed.Any())
+            {
+                Console.WriteLine("No environment variables were filtered.");
+            }
+            else
+            {
+                Console.WriteLine($"The following environment variables were filtered out: {string.Join("; ", removed)}");
+            }
+
             var traits = CreateTraits(runtimeVersion, dotnet.LatestSdkVersion, platformIds, dotnet.IsMonoRuntime(runtimeVersion), trait);
             Console.WriteLine($"Tests matching these traits will be skipped: {string.Join(", ", traits.OrderBy(s => s))}.");
 
